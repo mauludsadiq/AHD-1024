@@ -257,6 +257,155 @@ pub fn xor_bytes(a: &[u8], b: &[u8]) -> Vec<u8> {
     a.iter().zip(b).map(|(x, y)| x ^ y).collect()
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LowWeightRoundStats {
+    pub pairs: usize,
+    pub min_changed_bits: u32,
+    pub avg_changed_bits: f64,
+    pub max_changed_bits: u32,
+    pub count_le_32: usize,
+    pub count_le_48: usize,
+    pub count_le_64: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LowWeightReport {
+    pub variant: String,
+    pub rounds: HashMap<usize, LowWeightRoundStats>,
+}
+
+pub fn low_weight_differential_search(
+    rounds_list: &[usize],
+    pair_count: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> LowWeightReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut report = HashMap::new();
+    for &rounds in rounds_list {
+        let mut changed_bits = Vec::with_capacity(pair_count);
+        let mut min_bits = u32::MAX;
+        let mut max_bits = 0u32;
+        let mut le32 = 0usize;
+        let mut le48 = 0usize;
+        let mut le64 = 0usize;
+        for _ in 0..pair_count {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+            let mut m2 = m.clone();
+            let pos = rng.gen_range(0..(msg_len * 8));
+            m2[pos / 8] ^= 1u8 << (pos % 8);
+            let h1 = aha_hash(&m, Domain::Hash, 32, rounds, constants, chi, rot);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, rounds, constants, chi, rot);
+            let d = xor_bytes(&h1, &h2);
+            let bits = popcount_bytes(&d);
+            min_bits = min_bits.min(bits);
+            max_bits = max_bits.max(bits);
+            if bits <= 32 { le32 += 1; }
+            if bits <= 48 { le48 += 1; }
+            if bits <= 64 { le64 += 1; }
+            changed_bits.push(bits as f64);
+        }
+        report.insert(rounds, LowWeightRoundStats {
+            pairs: pair_count,
+            min_changed_bits: min_bits,
+            avg_changed_bits: changed_bits.iter().sum::<f64>() / changed_bits.len() as f64,
+            max_changed_bits: max_bits,
+            count_le_32: le32,
+            count_le_48: le48,
+            count_le_64: le64,
+        });
+    }
+    LowWeightReport {
+        variant: match chi {
+            ChiVariant::Star => "spec_star_chi".to_string(),
+            ChiVariant::Baseline => "baseline_chi".to_string(),
+        },
+        rounds: report,
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CubeRoundStats {
+    pub samples: usize,
+    pub cube_bits: usize,
+    pub output_balanced_count: usize,
+    pub output_constant_zero_count: usize,
+    pub output_constant_one_count: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CubeReport {
+    pub rounds: HashMap<usize, CubeRoundStats>,
+}
+
+pub fn cube_probe(
+    rounds_list: &[usize],
+    samples: usize,
+    msg_len: usize,
+    cube_bits: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> CubeReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut rounds_out = HashMap::new();
+    let total_masks = 1usize << cube_bits;
+
+    for &rounds in rounds_list {
+        let mut balanced = 0usize;
+        let mut const_zero = 0usize;
+        let mut const_one = 0usize;
+
+        for _ in 0..samples {
+            let mut base = vec![0u8; msg_len];
+            rng.fill(&mut base[..]);
+
+            let mut positions = HashSet::new();
+            while positions.len() < cube_bits {
+                positions.insert(rng.gen_range(0..(msg_len * 8)));
+            }
+            let pos_vec: Vec<usize> = positions.into_iter().collect();
+
+            let mut parity = vec![0u8; 256];
+            for mask in 0..total_masks {
+                let mut m = base.clone();
+                for (j, pos) in pos_vec.iter().enumerate() {
+                    if ((mask >> j) & 1) == 1 {
+                        m[*pos / 8] ^= 1u8 << (*pos % 8);
+                    }
+                }
+                let h = aha_hash(&m, Domain::Hash, 32, rounds, constants, chi, rot);
+                for i in 0..256 {
+                    parity[i] ^= (h[i / 8] >> (i % 8)) & 1;
+                }
+            }
+
+            for bit in parity {
+                if bit == 0 {
+                    const_zero += 1;
+                } else {
+                    balanced += 1;
+                }
+            }
+        }
+
+        rounds_out.insert(rounds, CubeRoundStats {
+            samples,
+            cube_bits,
+            output_balanced_count: balanced,
+            output_constant_zero_count: const_zero,
+            output_constant_one_count: const_one,
+        });
+    }
+
+    CubeReport { rounds: rounds_out }
+}
+
 pub fn stronger_reduced_round_search(
     rounds_list: &[usize],
     pair_count: usize,
@@ -483,6 +632,52 @@ pub struct RotationReport {
     pub tested_rotations: usize,
     pub rounds: HashMap<usize, usize>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FixedPointReport {
+    pub samples: usize,
+    pub rounds: HashMap<usize, usize>,
+}
+
+pub fn fixed_point_search(
+    rounds_list: &[usize],
+    samples: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> FixedPointReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut found = 0usize;
+
+        for _ in 0..samples {
+            let mut s = blank_state();
+
+            for x in 0..5 {
+                for y in 0..5 {
+                    s[x][y] = rng.gen::<u64>();
+                }
+            }
+
+            let sr = permute(s, r, constants, chi, rot);
+
+            if sr == s {
+                found += 1;
+            }
+        }
+
+        results.insert(r, found);
+    }
+
+    FixedPointReport {
+        samples,
+        rounds: results,
+    }
+}
+
 
 pub fn rotation_test(
     rounds_list: &[usize],

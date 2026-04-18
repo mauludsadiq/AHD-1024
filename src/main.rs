@@ -115,6 +115,36 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "fixed-point" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1_000_000);
+            let seed = args.get(3).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = fixed_point_search(&[1,2,3,4,5,6], samples, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("fixed_points_samples{}_seed{}.json", samples, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "low-weight" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("low_weight_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "cube" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(256);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let cube_bits = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(4);
+            let seed = args.get(5).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = cube_probe(&[1,2,3,4,5,6], samples, msg_len, cube_bits, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("cube_samples{}_msg{}_k{}_seed{}.json", samples, msg_len, cube_bits, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         _ => usage(),
     }
 }

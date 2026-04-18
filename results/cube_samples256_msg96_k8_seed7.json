@@ -1,0 +1,46 @@
+{
+  "rounds": {
+    "2": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 0,
+      "output_constant_zero_count": 65536,
+      "output_constant_one_count": 0
+    },
+    "4": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 32729,
+      "output_constant_zero_count": 32807,
+      "output_constant_one_count": 0
+    },
+    "1": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 0,
+      "output_constant_zero_count": 65536,
+      "output_constant_one_count": 0
+    },
+    "5": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 32742,
+      "output_constant_zero_count": 32794,
+      "output_constant_one_count": 0
+    },
+    "3": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 406,
+      "output_constant_zero_count": 65130,
+      "output_constant_one_count": 0
+    },
+    "6": {
+      "samples": 256,
+      "cube_bits": 8,
+      "output_balanced_count": 32708,
+      "output_constant_zero_count": 32828,
+      "output_constant_one_count": 0
+    }
+  }
+}
