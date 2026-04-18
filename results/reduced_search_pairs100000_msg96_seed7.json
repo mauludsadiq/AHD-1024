@@ -1,0 +1,101 @@
+{
+  "variant": "spec_star_chi",
+  "rounds": {
+    "5": {
+      "pairs": 100000,
+      "unique_output_differences": 100000,
+      "max_repeated_output_difference_count": 1,
+      "top5_repeat_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.500042578125,
+      "min_changed_fraction": 0.359375,
+      "max_changed_fraction": 0.62109375
+    },
+    "3": {
+      "pairs": 100000,
+      "unique_output_differences": 100000,
+      "max_repeated_output_difference_count": 1,
+      "top5_repeat_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.4999128515625,
+      "min_changed_fraction": 0.359375,
+      "max_changed_fraction": 0.63671875
+    },
+    "6": {
+      "pairs": 100000,
+      "unique_output_differences": 100000,
+      "max_repeated_output_difference_count": 1,
+      "top5_repeat_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.499923828125,
+      "min_changed_fraction": 0.37109375,
+      "max_changed_fraction": 0.640625
+    },
+    "4": {
+      "pairs": 100000,
+      "unique_output_differences": 100000,
+      "max_repeated_output_difference_count": 1,
+      "top5_repeat_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.500027578125,
+      "min_changed_fraction": 0.3671875,
+      "max_changed_fraction": 0.640625
+    },
+    "2": {
+      "pairs": 100000,
+      "unique_output_differences": 100000,
+      "max_repeated_output_difference_count": 1,
+      "top5_repeat_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.4512482421875,
+      "min_changed_fraction": 0.296875,
+      "max_changed_fraction": 0.6015625
+    },
+    "1": {
+      "pairs": 100000,
+      "unique_output_differences": 84303,
+      "max_repeated_output_difference_count": 7,
+      "top5_repeat_counts": [
+        7,
+        6,
+        6,
+        6,
+        6
+      ],
+      "zero_difference_count": 0,
+      "avg_changed_fraction": 0.029786015625,
+      "min_changed_fraction": 0.0078125,
+      "max_changed_fraction": 0.0625
+    }
+  }
+}

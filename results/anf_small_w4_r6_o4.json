@@ -1,0 +1,43 @@
+{
+  "lane_width": 4,
+  "state_bits": 16,
+  "tracked_outputs": 4,
+  "summaries": [
+    {
+      "round": 1,
+      "max_degree": 1,
+      "min_degree": 1,
+      "avg_degree": 1.0
+    },
+    {
+      "round": 2,
+      "max_degree": 3,
+      "min_degree": 3,
+      "avg_degree": 3.0
+    },
+    {
+      "round": 3,
+      "max_degree": 8,
+      "min_degree": 8,
+      "avg_degree": 8.0
+    },
+    {
+      "round": 4,
+      "max_degree": 16,
+      "min_degree": 15,
+      "avg_degree": 15.5
+    },
+    {
+      "round": 5,
+      "max_degree": 16,
+      "min_degree": 15,
+      "avg_degree": 15.5
+    },
+    {
+      "round": 6,
+      "max_degree": 16,
+      "min_degree": 15,
+      "avg_degree": 15.5
+    }
+  ]
+}

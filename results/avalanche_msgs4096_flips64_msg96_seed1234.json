@@ -1,0 +1,10 @@
+{
+  "pairs": 262144,
+  "avg_changed_bits": 128.02643966674805,
+  "avg_changed_fraction": 0.5001032799482346,
+  "output_flip_mean_prob": 0.5001032799482346,
+  "output_flip_mean_abs_dev": 0.0007350295782089233,
+  "output_flip_max_abs_dev": 0.002857208251953125,
+  "output_flip_min_prob": 0.4972076416015625,
+  "output_flip_max_prob": 0.5028572082519531
+}

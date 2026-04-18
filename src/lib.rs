@@ -1,0 +1,567 @@
+use rand::{Rng, SeedableRng};
+use rand::rngs::StdRng;
+use serde::{Deserialize, Serialize};
+use sha3::{digest::{ExtendableOutput, Update, XofReader}, Shake256};
+use std::collections::{HashMap, HashSet};
+
+pub const SEED: &[u8] = b"AHA-D-256-ROUND-CONSTANTS-v0.1";
+pub const MASK64: u64 = u64::MAX;
+pub const RATE_BITS: usize = 1024;
+pub const RATE_BYTES: usize = RATE_BITS / 8;
+pub const STATE_LANES: usize = 25;
+pub const ROUNDS: usize = 24;
+
+pub const ROT: [[u32; 5]; 5] = [
+    [0, 7, 19, 41, 53],
+    [11, 29, 43, 3, 31],
+    [37, 59, 5, 17, 47],
+    [23, 13, 61, 27, 9],
+    [45, 21, 39, 49, 55],
+];
+
+pub type State = [[u64; 5]; 5];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Domain {
+    Hash = 0x01,
+    Xof = 0x02,
+    TreeLeaf = 0x03,
+    TreeParent = 0x04,
+    MacKeyed = 0x05,
+    Transcript = 0x06,
+    Artifact = 0x07,
+    RoundTrace = 0x08,
+}
+
+impl Domain {
+    pub fn from_name(name: &str) -> Option<Self> {
+        match name.to_ascii_uppercase().as_str() {
+            "HASH" => Some(Self::Hash),
+            "XOF" => Some(Self::Xof),
+            "TREE_LEAF" => Some(Self::TreeLeaf),
+            "TREE_PARENT" => Some(Self::TreeParent),
+            "MAC_KEYED" => Some(Self::MacKeyed),
+            "TRANSCRIPT" => Some(Self::Transcript),
+            "ARTIFACT" => Some(Self::Artifact),
+            "ROUND_TRACE" => Some(Self::RoundTrace),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Constants {
+    pub k0: [u64; ROUNDS],
+    pub k1: [u64; ROUNDS],
+    pub k2: [u64; ROUNDS],
+}
+
+pub fn derive_constants() -> Constants {
+    let mut hasher = Shake256::default();
+    hasher.update(SEED);
+    let mut xof = hasher.finalize_xof();
+    let mut material = [0u8; 3 * ROUNDS * 8];
+    xof.read(&mut material);
+    let mut words = [0u64; 3 * ROUNDS];
+    for (i, chunk) in material.chunks_exact(8).enumerate() {
+        words[i] = u64::from_le_bytes(chunk.try_into().unwrap());
+    }
+    let mut k0 = [0u64; ROUNDS];
+    let mut k1 = [0u64; ROUNDS];
+    let mut k2 = [0u64; ROUNDS];
+    for t in 0..ROUNDS {
+        k0[t] = words[3 * t];
+        k1[t] = words[3 * t + 1];
+        k2[t] = words[3 * t + 2];
+    }
+    Constants { k0, k1, k2 }
+}
+
+#[inline]
+pub fn rotl64(x: u64, n: u32) -> u64 {
+    x.rotate_left(n)
+}
+
+pub fn blank_state() -> State {
+    [[0u64; 5]; 5]
+}
+
+pub fn theta(s: &State) -> State {
+    let mut c = [0u64; 5];
+    for x in 0..5 {
+        c[x] = s[x][0] ^ s[x][1] ^ s[x][2] ^ s[x][3] ^ s[x][4];
+    }
+    let mut d = [0u64; 5];
+    for x in 0..5 {
+        d[x] = rotl64(c[(x + 4) % 5], 1) ^ rotl64(c[(x + 1) % 5], 11) ^ rotl64(c[(x + 2) % 5], 27);
+    }
+    let mut out = [[0u64; 5]; 5];
+    for x in 0..5 {
+        for y in 0..5 {
+            out[x][y] = s[x][y] ^ d[x];
+        }
+    }
+    out
+}
+
+pub fn pi_stage(s: &State) -> State {
+    let mut out = [[0u64; 5]; 5];
+    for x in 0..5 {
+        for y in 0..5 {
+            out[x][y] = s[(2 * x + 3 * y) % 5][(x + 2 * y) % 5];
+        }
+    }
+    out
+}
+
+pub fn rho(s: &State, rot: &[[u32; 5]; 5]) -> State {
+    let mut out = [[0u64; 5]; 5];
+    for x in 0..5 {
+        for y in 0..5 {
+            out[x][y] = rotl64(s[x][y], rot[x][y]);
+        }
+    }
+    out
+}
+
+pub fn chi_star(s: &State) -> State {
+    let mut out = [[0u64; 5]; 5];
+    for y in 0..5 {
+        let a = [s[0][y], s[1][y], s[2][y], s[3][y], s[4][y]];
+        for i in 0..5 {
+            out[i][y] = a[i]
+                ^ ((!a[(i + 1) % 5]) & a[(i + 2) % 5])
+                ^ (rotl64(a[(i + 3) % 5], 1) & rotl64(a[(i + 4) % 5], 3));
+        }
+    }
+    out
+}
+
+pub fn chi_baseline(s: &State) -> State {
+    let mut out = [[0u64; 5]; 5];
+    for y in 0..5 {
+        let a = [s[0][y], s[1][y], s[2][y], s[3][y], s[4][y]];
+        for i in 0..5 {
+            out[i][y] = a[i] ^ ((!a[(i + 1) % 5]) & a[(i + 2) % 5]);
+        }
+    }
+    out
+}
+
+pub fn iota(s: &State, t: usize, constants: &Constants) -> State {
+    let mut out = *s;
+    out[0][0] ^= constants.k0[t];
+    out[1][2] ^= constants.k1[t];
+    out[4][4] ^= constants.k2[t];
+    out
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ChiVariant {
+    Star,
+    Baseline,
+}
+
+pub fn permute(mut s: State, rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> State {
+    for t in 0..rounds {
+        s = theta(&s);
+        s = pi_stage(&s);
+        s = rho(&s, rot);
+        s = match chi {
+            ChiVariant::Star => chi_star(&s),
+            ChiVariant::Baseline => chi_baseline(&s),
+        };
+        s = iota(&s, t, constants);
+    }
+    s
+}
+
+pub fn pad_v02(message: &[u8], domain: Domain) -> Vec<u8> {
+    let mut out = Vec::with_capacity(message.len() + 2 + RATE_BYTES);
+    out.extend_from_slice(message);
+    out.push(domain as u8);
+    out.push(0x01);
+    while out.len() % RATE_BYTES != 0 {
+        out.push(0);
+    }
+    if let Some(last) = out.last_mut() {
+        *last |= 0x80;
+    }
+    out
+}
+
+pub fn absorb_blocks(padded: &[u8], rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> State {
+    let mut s = blank_state();
+    for block in padded.chunks_exact(RATE_BYTES) {
+        for i in 0..16 {
+            let lane = u64::from_le_bytes(block[8 * i..8 * i + 8].try_into().unwrap());
+            let x = i % 5;
+            let y = i / 5;
+            s[x][y] ^= lane;
+        }
+        s = permute(s, rounds, constants, chi, rot);
+    }
+    s
+}
+
+pub fn squeeze_bytes(mut s: State, out_len: usize, rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(out_len);
+    while out.len() < out_len {
+        for i in 0..16 {
+            let x = i % 5;
+            let y = i / 5;
+            out.extend_from_slice(&s[x][y].to_le_bytes());
+            if out.len() >= out_len {
+                out.truncate(out_len);
+                return out;
+            }
+        }
+        s = permute(s, rounds, constants, chi, rot);
+    }
+    out
+}
+
+pub fn aha_hash(message: &[u8], domain: Domain, out_len: usize, rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> Vec<u8> {
+    let padded = pad_v02(message, domain);
+    let s = absorb_blocks(&padded, rounds, constants, chi, rot);
+    squeeze_bytes(s, out_len, rounds, constants, chi, rot)
+}
+
+pub fn hex_of(bytes: &[u8]) -> String {
+    hex::encode(bytes)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RoundStats {
+    pub pairs: usize,
+    pub unique_output_differences: usize,
+    pub max_repeated_output_difference_count: usize,
+    pub top5_repeat_counts: Vec<usize>,
+    pub zero_difference_count: usize,
+    pub avg_changed_fraction: f64,
+    pub min_changed_fraction: f64,
+    pub max_changed_fraction: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReducedRoundReport {
+    pub variant: String,
+    pub rounds: HashMap<usize, RoundStats>,
+}
+
+pub fn popcount_bytes(bytes: &[u8]) -> u32 {
+    bytes.iter().map(|b| b.count_ones()).sum()
+}
+
+pub fn xor_bytes(a: &[u8], b: &[u8]) -> Vec<u8> {
+    a.iter().zip(b).map(|(x, y)| x ^ y).collect()
+}
+
+pub fn stronger_reduced_round_search(
+    rounds_list: &[usize],
+    pair_count: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> ReducedRoundReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut report = HashMap::new();
+    for &rounds in rounds_list {
+        let mut diffs: HashMap<Vec<u8>, usize> = HashMap::new();
+        let mut changed = Vec::with_capacity(pair_count);
+        let mut zero = 0usize;
+        for _ in 0..pair_count {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+            let mut m2 = m.clone();
+            let pos = rng.gen_range(0..(msg_len * 8));
+            m2[pos / 8] ^= 1u8 << (pos % 8);
+            let h1 = aha_hash(&m, Domain::Hash, 32, rounds, constants, chi, rot);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, rounds, constants, chi, rot);
+            let d = xor_bytes(&h1, &h2);
+            if d.iter().all(|b| *b == 0) {
+                zero += 1;
+            }
+            *diffs.entry(d.clone()).or_insert(0) += 1;
+            changed.push(popcount_bytes(&d) as f64 / 256.0);
+        }
+        let mut counts: Vec<usize> = diffs.values().copied().collect();
+        counts.sort_unstable_by(|a, b| b.cmp(a));
+        let stats = RoundStats {
+            pairs: pair_count,
+            unique_output_differences: diffs.len(),
+            max_repeated_output_difference_count: counts.first().copied().unwrap_or(0),
+            top5_repeat_counts: counts.into_iter().take(5).collect(),
+            zero_difference_count: zero,
+            avg_changed_fraction: changed.iter().sum::<f64>() / changed.len() as f64,
+            min_changed_fraction: changed.iter().copied().fold(f64::INFINITY, f64::min),
+            max_changed_fraction: changed.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+        };
+        report.insert(rounds, stats);
+    }
+    ReducedRoundReport {
+        variant: match chi {
+            ChiVariant::Star => "spec_star_chi".to_string(),
+            ChiVariant::Baseline => "baseline_chi".to_string(),
+        },
+        rounds: report,
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AvalancheReport {
+    pub pairs: usize,
+    pub avg_changed_bits: f64,
+    pub avg_changed_fraction: f64,
+    pub output_flip_mean_prob: f64,
+    pub output_flip_mean_abs_dev: f64,
+    pub output_flip_max_abs_dev: f64,
+    pub output_flip_min_prob: f64,
+    pub output_flip_max_prob: f64,
+}
+
+pub fn avalanche_stats(
+    msg_len: usize,
+    n_msgs: usize,
+    flips_per_msg: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> AvalancheReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut total_pairs = 0usize;
+    let mut changed = Vec::with_capacity(n_msgs * flips_per_msg);
+    let mut out_flip_counts = vec![0usize; 256];
+    for _ in 0..n_msgs {
+        let mut msg = vec![0u8; msg_len];
+        rng.fill(&mut msg[..]);
+        let base = aha_hash(&msg, Domain::Hash, 32, ROUNDS, constants, chi, rot);
+        let mut chosen = HashSet::new();
+        while chosen.len() < flips_per_msg {
+            chosen.insert(rng.gen_range(0..msg_len * 8));
+        }
+        for pos in chosen {
+            let mut m2 = msg.clone();
+            m2[pos / 8] ^= 1u8 << (pos % 8);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, ROUNDS, constants, chi, rot);
+            let diff = xor_bytes(&base, &h2);
+            changed.push(popcount_bytes(&diff) as usize);
+            for (j, byte) in diff.iter().enumerate() {
+                for k in 0..8 {
+                    if (byte >> k) & 1 == 1 {
+                        out_flip_counts[j * 8 + k] += 1;
+                    }
+                }
+            }
+            total_pairs += 1;
+        }
+    }
+    let probs: Vec<f64> = out_flip_counts.iter().map(|&c| c as f64 / total_pairs as f64).collect();
+    AvalancheReport {
+        pairs: total_pairs,
+        avg_changed_bits: changed.iter().sum::<usize>() as f64 / changed.len() as f64,
+        avg_changed_fraction: changed.iter().sum::<usize>() as f64 / (changed.len() * 256) as f64,
+        output_flip_mean_prob: probs.iter().sum::<f64>() / 256.0,
+        output_flip_mean_abs_dev: probs.iter().map(|p| (p - 0.5).abs()).sum::<f64>() / 256.0,
+        output_flip_max_abs_dev: probs.iter().map(|p| (p - 0.5).abs()).fold(0.0_f64, f64::max),
+        output_flip_min_prob: probs.iter().copied().fold(f64::INFINITY, f64::min),
+        output_flip_max_prob: probs.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AnfRoundSummary {
+    pub round: usize,
+    pub max_degree: usize,
+    pub min_degree: usize,
+    pub avg_degree: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AnfExperimentReport {
+    pub lane_width: usize,
+    pub state_bits: usize,
+    pub tracked_outputs: usize,
+    pub summaries: Vec<AnfRoundSummary>,
+}
+
+fn mobius_anf_degree(mut table: Vec<u8>, vars: usize) -> usize {
+    let n = 1usize << vars;
+    for i in 0..vars {
+        for mask in 0..n {
+            if (mask & (1 << i)) != 0 {
+                table[mask] ^= table[mask ^ (1 << i)];
+            }
+        }
+    }
+    let mut max_deg = 0usize;
+    for (mask, &coef) in table.iter().enumerate() {
+        if coef & 1 == 1 {
+            max_deg = max_deg.max(mask.count_ones() as usize);
+        }
+    }
+    max_deg
+}
+
+fn state_from_small_bits(bits: &[u8], lane_width: usize) -> State {
+    let mut s = blank_state();
+    let lanes_used = bits.len() / lane_width;
+    let mut idx = 0usize;
+    for lane in 0..lanes_used {
+        let x = lane % 5;
+        let y = lane / 5;
+        let mut lane_bits = 0u64;
+        for b in 0..lane_width {
+            lane_bits |= (bits[idx] as u64) << b;
+            idx += 1;
+        }
+        s[x][y] = lane_bits;
+    }
+    s
+}
+
+pub fn exact_small_width_anf_experiment(
+    lane_width: usize,
+    rounds: usize,
+    tracked_outputs: usize,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> AnfExperimentReport {
+    let lanes_used = 4usize;
+    let vars = lanes_used * lane_width;
+    assert!(vars <= 16, "exact truth-table ANF explodes past 16 vars; choose smaller width or fewer lanes");
+    let n = 1usize << vars;
+    let mut summaries = Vec::new();
+    for r in 1..=rounds {
+        let mut degrees = Vec::new();
+        for out_idx in 0..tracked_outputs {
+            let lane_idx = out_idx / lane_width;
+            let bit_idx = out_idx % lane_width;
+            let out_x = lane_idx % 5;
+            let out_y = lane_idx / 5;
+            let mut table = vec![0u8; n];
+            for mask in 0..n {
+                let mut bits = vec![0u8; vars];
+                for i in 0..vars {
+                    bits[i] = ((mask >> i) & 1) as u8;
+                }
+                let s0 = state_from_small_bits(&bits, lane_width);
+                let sr = permute(s0, r, constants, chi, rot);
+                table[mask] = ((sr[out_x][out_y] >> bit_idx) & 1) as u8;
+            }
+            degrees.push(mobius_anf_degree(table, vars));
+        }
+        let min_degree = *degrees.iter().min().unwrap();
+        let max_degree = *degrees.iter().max().unwrap();
+        let avg_degree = degrees.iter().sum::<usize>() as f64 / degrees.len() as f64;
+        summaries.push(AnfRoundSummary { round: r, max_degree, min_degree, avg_degree });
+    }
+    AnfExperimentReport {
+        lane_width,
+        state_bits: vars,
+        tracked_outputs,
+        summaries,
+    }
+}
+
+pub fn shifted_rot() -> [[u32; 5]; 5] {
+    let mut out = [[0u32; 5]; 5];
+    for x in 0..5 {
+        for y in 0..5 {
+            out[x][y] = (ROT[x][y] + 1) % 64;
+        }
+    }
+    out
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RotationReport {
+    pub tested_rotations: usize,
+    pub rounds: HashMap<usize, usize>,
+}
+
+pub fn rotation_test(
+    rounds_list: &[usize],
+    samples: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> RotationReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut survives = 0usize;
+
+        for _ in 0..samples {
+            let mut msg = vec![0u8; msg_len];
+            rng.fill(&mut msg[..]);
+            let h = aha_hash(&msg, Domain::Hash, 32, r, constants, chi, rot);
+
+            for rot_bits in 1..64 {
+                if rot_bits % 8 == 0 { continue; }
+                let mut rotated = msg.clone();
+                for byte in &mut rotated {
+                    *byte = byte.rotate_left(rot_bits as u32);
+                }
+
+                let h_rot = aha_hash(&rotated, Domain::Hash, 32, r, constants, chi, rot);
+
+                let mut match_rot = true;
+                for (a, b) in h.iter().zip(h_rot.iter()) {
+                    if b.rotate_right(rot_bits as u32) != *a {
+                        match_rot = false;
+                        break;
+                    }
+                }
+
+                if match_rot {
+                    survives += 1;
+                }
+            }
+        }
+
+        results.insert(r, survives);
+    }
+
+    RotationReport {
+        tested_rotations: 63,
+        rounds: results,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn constants_match_python_summary() {
+        let c = derive_constants();
+        assert_eq!(c.k0[0], 0x1574_243b_711d_5566);
+        assert_eq!(c.k1[0], 0x5295_4354_2562_3498);
+        assert_eq!(c.k2[0], 0x981e_63bd_9227_548f);
+    }
+
+    #[test]
+    fn hash_vectors_match_python() {
+        let c = derive_constants();
+        assert_eq!(hex_of(&aha_hash(b"", Domain::Hash, 32, ROUNDS, &c, ChiVariant::Star, &ROT)), "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0");
+        assert_eq!(hex_of(&aha_hash(b"abc", Domain::Hash, 32, ROUNDS, &c, ChiVariant::Star, &ROT)), "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f");
+        assert_eq!(hex_of(&aha_hash(&vec![0u8;128], Domain::Hash, 32, ROUNDS, &c, ChiVariant::Star, &ROT)), "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe");
+        let mut m = vec![0u8;128]; m[127] = 1;
+        assert_eq!(hex_of(&aha_hash(&m, Domain::Hash, 32, ROUNDS, &c, ChiVariant::Star, &ROT)), "2eb15de636e671274ffe8891dae56353712dc4fbffca2876041d2d63219ec5dc");
+    }
+
+    #[test]
+    fn xof_vectors_match_python() {
+        let c = derive_constants();
+        assert_eq!(hex_of(&aha_hash(b"", Domain::Xof, 64, ROUNDS, &c, ChiVariant::Star, &ROT)), "01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f08462ab96efcbfc0e83af22d1f17227f4c22948188749ad465f84cd037048ed8b76");
+        assert_eq!(hex_of(&aha_hash(b"abc", Domain::Xof, 64, ROUNDS, &c, ChiVariant::Star, &ROT)), "87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891043b1e6bc9a00f313585beba4de91cdf86f2d351792e8685ebf8b427097f5410");
+    }
+}
