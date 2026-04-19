@@ -1,0 +1,46 @@
+{
+  "rounds": {
+    "3": {
+      "rounds": 3,
+      "samples": 50000,
+      "active_output_bits_avg": 128.09118,
+      "active_output_bits_min": 94,
+      "active_output_bits_max": 158
+    },
+    "1": {
+      "rounds": 1,
+      "samples": 50000,
+      "active_output_bits_avg": 7.6146,
+      "active_output_bits_min": 2,
+      "active_output_bits_max": 15
+    },
+    "5": {
+      "rounds": 5,
+      "samples": 50000,
+      "active_output_bits_avg": 128.0262,
+      "active_output_bits_min": 95,
+      "active_output_bits_max": 162
+    },
+    "6": {
+      "rounds": 6,
+      "samples": 50000,
+      "active_output_bits_avg": 127.99412,
+      "active_output_bits_min": 95,
+      "active_output_bits_max": 161
+    },
+    "2": {
+      "rounds": 2,
+      "samples": 50000,
+      "active_output_bits_avg": 115.53068,
+      "active_output_bits_min": 75,
+      "active_output_bits_max": 157
+    },
+    "4": {
+      "rounds": 4,
+      "samples": 50000,
+      "active_output_bits_avg": 127.90678,
+      "active_output_bits_min": 92,
+      "active_output_bits_max": 162
+    }
+  }
+}

@@ -214,6 +214,16 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "lane-activity" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(50000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(1234);
+            let report = lane_activity_probe(&[1,2,3,4,5,6], samples, msg_len, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("lane_activity_samples{}_msg{}_seed{}.json", samples, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "structured-diff" => {
             let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(50000);
             let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);

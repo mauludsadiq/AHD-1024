@@ -741,6 +741,70 @@ pub fn cube_probe(
     CubeReport { rounds: rounds_out }
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LaneActivityRoundStats {
+    pub rounds: usize,
+    pub samples: usize,
+    pub active_output_bits_avg: f64,
+    pub active_output_bits_min: u32,
+    pub active_output_bits_max: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LaneActivityReport {
+    pub rounds: HashMap<usize, LaneActivityRoundStats>,
+}
+
+pub fn lane_activity_probe(
+    rounds_list: &[usize],
+    samples: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> LaneActivityReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut report = HashMap::new();
+
+    for &r in rounds_list {
+        let mut counts = Vec::with_capacity(samples);
+        let mut min_bits = u32::MAX;
+        let mut max_bits = 0u32;
+
+        for _ in 0..samples {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+            let mut m2 = m.clone();
+
+            let pos = rng.gen_range(0..(msg_len * 8));
+            m2[pos / 8] ^= 1u8 << (pos % 8);
+
+            let h1 = aha_hash(&m, Domain::Hash, 32, r, constants, chi, rot);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, r, constants, chi, rot);
+
+            let d = xor_bytes(&h1, &h2);
+            let bits = popcount_bytes(&d);
+
+            min_bits = min_bits.min(bits);
+            max_bits = max_bits.max(bits);
+            counts.push(bits as f64);
+        }
+
+        report.insert(r, LaneActivityRoundStats {
+            rounds: r,
+            samples,
+            active_output_bits_avg: counts.iter().sum::<f64>() / counts.len() as f64,
+            active_output_bits_min: min_bits,
+            active_output_bits_max: max_bits,
+        });
+    }
+
+    LaneActivityReport { rounds: report }
+}
+
+
 pub fn stronger_reduced_round_search(
     rounds_list: &[usize],
     pair_count: usize,
