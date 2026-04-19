@@ -119,23 +119,6 @@ Rounds 5–6 remain stable under current harness.
 
 ---
 
-## Status
-
-Version: v0.2  
-State: candidate under active internal cryptanalysis
-
----
-
-## Philosophy
-
-All claims are tied to code and measurable outputs. No assumptions.
-
----
-
-## License
-
-MUI
-
 ## Extended Cryptanalytic Results
 
 These are exact or statistically bounded results from internal analysis harnesses.
@@ -194,4 +177,21 @@ Cycle detection for lengths 2, 3, and 4.
 | Fixed points (200k)           | 0            | 0            | 0            |
 
 **Conclusion:** Round 3 achieves statistical ideality in differential metrics. Round 4 achieves near-maximum algebraic degree. No structural artifacts detected in any metric through round 6.
+
+## Status
+
+Version: v0.2  
+State: candidate under active internal cryptanalysis
+
+---
+
+## Philosophy
+
+All claims are tied to code and measurable outputs. No assumptions.
+
+---
+
+## License
+
+MUI
 
