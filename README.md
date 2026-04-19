@@ -249,6 +249,41 @@ This satisfies the core requirement for a cryptographic candidate:
 
 ---
 
+### First Phase 3 Result: Avalanche Matrix Screening
+
+A first avalanche-matrix campaign has now been completed.
+
+Measured runs:
+- `64 × 256` matrix at `1024` messages per input bit
+- `64 × 256` matrix at `4096` messages per input bit
+- `128 × 256` matrix at `4096` messages per input bit
+
+Key results from the higher-confidence runs:
+
+- `64 × 256`, `4096` samples/input bit  
+  - `global_min_prob = 0.464111328125`  
+  - `global_max_prob = 0.531494140625`  
+  - `global_mean_abs_dev = 0.0062551796436309814`  
+  - `global_max_abs_dev = 0.035888671875`
+
+- `128 × 256`, `4096` samples/input bit  
+  - `global_min_prob = 0.464111328125`  
+  - `global_max_prob = 0.531494140625`  
+  - `global_mean_abs_dev = 0.006231091916561127`  
+  - `global_max_abs_dev = 0.035888671875`
+
+Interpretation:
+
+- Increasing sample count from `1024` to `4096` reduced deviation substantially, consistent with sampling-noise shrinkage.
+- Expanding coverage from `64` to `128` input bits did not reveal a hidden weak band.
+- The first `128` message bits exhibit broadly healthy avalanche behavior against all `256` output bits at this resolution.
+
+Artifacts:
+- `results/avalanche_matrix_in64_msgs1024_msg96_seed1234.json`
+- `results/avalanche_matrix_in64_msgs4096_msg96_seed1234.json`
+- `results/avalanche_matrix_in128_msgs4096_msg96_seed1234.json`
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
