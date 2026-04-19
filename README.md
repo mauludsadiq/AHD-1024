@@ -284,6 +284,41 @@ Artifacts:
 - `results/avalanche_matrix_in128_msgs4096_msg96_seed1234.json`
 
 
+### Phase 3 Result: Linear / Correlation Matrix Screening
+
+A full linear correlation matrix scan has now been completed across early rounds.
+
+Measured runs:
+- `64 × 256` at `4096` samples per input bit
+- `64 × 256` at `16384` samples per input bit
+- `128 × 256` at `16384` samples per input bit
+
+Key high-confidence results (`16384` samples/input bit):
+
+- Round global mean bias:
+  - ~`0.00310 – 0.00313` across rounds `1–6`
+
+- Round global max bias:
+  - ~`0.0157 – 0.0169` across rounds `1–6`
+
+Interpretation:
+
+- Increasing sample count from `4096` → `16384` reduced previously observed maxima, consistent with sampling-noise collapse.
+- Expanding coverage from `64` → `128` input bits did not reveal any structured bias band.
+- Mean bias aligns with expected statistical noise:
+  - σ ≈ `sqrt(0.25 / 16384) = 0.00390625`
+- Observed maxima are consistent with extreme-value effects over a large matrix, not structural leakage.
+
+Conclusion:
+
+- No persistent linear/correlation weakness is observed in the first `128` input bits across rounds `1–6` at current resolution.
+
+Artifacts:
+- `results/linear_matrix_in64_out256_samples4096_msg96_seed1234.json`
+- `results/linear_matrix_in64_out256_samples16384_msg96_seed1234.json`
+- `results/linear_matrix_in128_out256_samples16384_msg96_seed1234.json`
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
