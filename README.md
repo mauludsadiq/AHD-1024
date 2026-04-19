@@ -135,3 +135,63 @@ All claims are tied to code and measurable outputs. No assumptions.
 ## License
 
 MUI
+
+## Extended Cryptanalytic Results
+
+These are exact or statistically bounded results from internal analysis harnesses.
+
+### ANF Exact Subspace Analysis
+
+Projected subspace, exact enumeration (not sampling). Values shown are average algebraic degree.
+
+| Variables | Round 1 | Round 2 | Round 3 | Round 4 | Round 5 | Round 6 |
+|-----------|---------|---------|---------|---------|---------|---------|
+| 4         | 0.75    | 2.0     | 3.25    | 2.75    | 3.5     | 3.75    |
+| 8         | 0.5     | 2.25    | 6.0     | 7.25    | 8.0     | 7.5     |
+| 16        | 1.0     | 3.0     | 8.0     | 15.5    | 15.5    | 15.5    |
+
+**Finding:** In the exact 16-variable subspace, degree reaches near-maximum by round 4.
+
+### Rotation Symmetry Screening
+
+Byte-rotation artifact screen across rounds 1–6.
+
+| Rounds | Nontrivial Survivals |
+|--------|---------------------|
+| 1–6    | 0                   |
+
+**Finding:** No nontrivial byte-rotation matches observed in tested sample.
+
+### Fixed Point Search
+
+State-level fixed-point check: `permute(S, r) == S`
+
+| Rounds | Samples | Fixed Points |
+|--------|---------|--------------|
+| 1–6    | 200,000 | 0            |
+
+**Finding:** No sampled fixed points through 6 rounds.
+
+### Short Cycle Search
+
+Cycle detection for lengths 2, 3, and 4.
+
+| Cycle Length | Samples | Cycles Found |
+|--------------|---------|--------------|
+| 2            | 200,000 | 0            |
+| 3            | 200,000 | 0            |
+| 4            | 200,000 | 0            |
+
+**Finding:** No sampled 2-, 3-, or 4-cycles through 6 rounds.
+
+### Cumulative Security Picture
+
+| Metric                       | Round 3      | Round 4      | Rounds 5–6   |
+|------------------------------|--------------|--------------|--------------|
+| Differential (single-bit avg) | ~128 (ideal) | ~128 (ideal) | ~128 (ideal) |
+| ANF 16-var degree             | 8.0 / 16     | 15.5 / 16    | 15.5 / 16    |
+| Rotation survivals            | 0            | 0            | 0            |
+| Fixed points (200k)           | 0            | 0            | 0            |
+
+**Conclusion:** Round 3 achieves statistical ideality in differential metrics. Round 4 achieves near-maximum algebraic degree. No structural artifacts detected in any metric through round 6.
+
