@@ -274,6 +274,186 @@ pub struct LowWeightReport {
     pub rounds: HashMap<usize, LowWeightRoundStats>,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StructuredDifferentialRoundStats {
+    pub pairs_per_pattern: usize,
+    pub pattern: String,
+    pub min_changed_bits: u32,
+    pub avg_changed_bits: f64,
+    pub max_changed_bits: u32,
+    pub count_le_32: usize,
+    pub count_le_48: usize,
+    pub count_le_64: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StructuredDifferentialReport {
+    pub variant: String,
+    pub rounds: HashMap<usize, HashMap<String, StructuredDifferentialRoundStats>>,
+}
+
+fn apply_structured_diff(m2: &mut [u8], pattern: &str, base_pos: usize, msg_bits: usize) {
+    match pattern {
+        "single_bit" => {
+            let p = base_pos % msg_bits;
+            m2[p / 8] ^= 1u8 << (p % 8);
+        }
+        "adjacent_2" => {
+            for off in 0..2 {
+                let p = (base_pos + off) % msg_bits;
+                m2[p / 8] ^= 1u8 << (p % 8);
+            }
+        }
+        "adjacent_4" => {
+            for off in 0..4 {
+                let p = (base_pos + off) % msg_bits;
+                m2[p / 8] ^= 1u8 << (p % 8);
+            }
+        }
+        "same_byte_full" => {
+            let byte = (base_pos / 8) % (msg_bits / 8);
+            m2[byte] ^= 0xff;
+        }
+        "same_lane_8" => {
+            for off in 0..8 {
+                let p = (base_pos + off * 64) % msg_bits;
+                m2[p / 8] ^= 1u8 << (p % 8);
+            }
+        }
+        _ => panic!("unknown structured differential pattern"),
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinearRoundStats {
+    pub samples: usize,
+    pub input_bit: usize,
+    pub output_bit: usize,
+    pub bias: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinearReport {
+    pub rounds: HashMap<usize, LinearRoundStats>,
+}
+
+pub fn linear_correlation_probe(
+    rounds_list: &[usize],
+    samples: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> LinearReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    let input_bit = 0;
+    let output_bit = 0;
+
+    for &r in rounds_list {
+        let mut count_equal = 0usize;
+
+        for _ in 0..samples {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+
+            let in_bit = (m[input_bit / 8] >> (input_bit % 8)) & 1;
+
+            let h = aha_hash(&m, Domain::Hash, 32, r, constants, chi, rot);
+            let out_bit = (h[output_bit / 8] >> (output_bit % 8)) & 1;
+
+            if in_bit == out_bit {
+                count_equal += 1;
+            }
+        }
+
+        let p = count_equal as f64 / samples as f64;
+        let bias = (p - 0.5).abs();
+
+        results.insert(r, LinearRoundStats {
+            samples,
+            input_bit,
+            output_bit,
+            bias,
+        });
+    }
+
+    LinearReport { rounds: results }
+}
+
+pub fn structured_differential_search(
+    rounds_list: &[usize],
+    pair_count: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> StructuredDifferentialReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut out = HashMap::new();
+    let patterns = ["single_bit", "adjacent_2", "adjacent_4", "same_byte_full", "same_lane_8"];
+    let msg_bits = msg_len * 8;
+
+    for &rounds in rounds_list {
+        let mut per_pattern = HashMap::new();
+
+        for pattern in patterns {
+            let mut changed_bits = Vec::with_capacity(pair_count);
+            let mut min_bits = u32::MAX;
+            let mut max_bits = 0u32;
+            let mut le32 = 0usize;
+            let mut le48 = 0usize;
+            let mut le64 = 0usize;
+
+            for _ in 0..pair_count {
+                let mut m = vec![0u8; msg_len];
+                rng.fill(&mut m[..]);
+                let mut m2 = m.clone();
+                let base_pos = rng.gen_range(0..msg_bits);
+                apply_structured_diff(&mut m2, pattern, base_pos, msg_bits);
+
+                let h1 = aha_hash(&m, Domain::Hash, 32, rounds, constants, chi, rot);
+                let h2 = aha_hash(&m2, Domain::Hash, 32, rounds, constants, chi, rot);
+                let d = xor_bytes(&h1, &h2);
+                let bits = popcount_bytes(&d);
+
+                min_bits = min_bits.min(bits);
+                max_bits = max_bits.max(bits);
+                if bits <= 32 { le32 += 1; }
+                if bits <= 48 { le48 += 1; }
+                if bits <= 64 { le64 += 1; }
+                changed_bits.push(bits as f64);
+            }
+
+            per_pattern.insert(pattern.to_string(), StructuredDifferentialRoundStats {
+                pairs_per_pattern: pair_count,
+                pattern: pattern.to_string(),
+                min_changed_bits: min_bits,
+                avg_changed_bits: changed_bits.iter().sum::<f64>() / changed_bits.len() as f64,
+                max_changed_bits: max_bits,
+                count_le_32: le32,
+                count_le_48: le48,
+                count_le_64: le64,
+            });
+        }
+
+        out.insert(rounds, per_pattern);
+    }
+
+    StructuredDifferentialReport {
+        variant: match chi {
+            ChiVariant::Star => "spec_star_chi".to_string(),
+            ChiVariant::Baseline => "baseline_chi".to_string(),
+        },
+        rounds: out,
+    }
+}
+
+
 pub fn low_weight_differential_search(
     rounds_list: &[usize],
     pair_count: usize,
@@ -332,9 +512,9 @@ pub fn low_weight_differential_search(
 pub struct CubeRoundStats {
     pub samples: usize,
     pub cube_bits: usize,
-    pub output_balanced_count: usize,
-    pub output_constant_zero_count: usize,
-    pub output_constant_one_count: usize,
+    pub output_parity_one_count: usize,
+    pub output_parity_zero_count: usize,
+    pub output_parity_unused_count: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -357,9 +537,9 @@ pub fn cube_probe(
     let total_masks = 1usize << cube_bits;
 
     for &rounds in rounds_list {
-        let mut balanced = 0usize;
-        let mut const_zero = 0usize;
-        let mut const_one = 0usize;
+        let mut parity_one = 0usize;
+        let mut parity_zero = 0usize;
+        let mut parity_unused = 0usize;
 
         for _ in 0..samples {
             let mut base = vec![0u8; msg_len];
@@ -387,9 +567,9 @@ pub fn cube_probe(
 
             for bit in parity {
                 if bit == 0 {
-                    const_zero += 1;
+                    parity_zero += 1;
                 } else {
-                    balanced += 1;
+                    parity_one += 1;
                 }
             }
         }
@@ -397,9 +577,9 @@ pub fn cube_probe(
         rounds_out.insert(rounds, CubeRoundStats {
             samples,
             cube_bits,
-            output_balanced_count: balanced,
-            output_constant_zero_count: const_zero,
-            output_constant_one_count: const_one,
+            output_parity_one_count: parity_one,
+            output_parity_zero_count: parity_zero,
+            output_parity_unused_count: parity_unused,
         });
     }
 
@@ -708,6 +888,44 @@ pub fn three_cycle_search(
             let s3 = permute(s2, r, constants, chi, rot);
 
             if s3 == s && s1 != s && s2 != s {
+                found += 1;
+            }
+        }
+
+        results.insert(r, found);
+    }
+
+    CycleReport { samples, rounds: results }
+}
+
+pub fn four_cycle_search(
+    rounds_list: &[usize],
+    samples: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> CycleReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut found = 0usize;
+
+        for _ in 0..samples {
+            let mut s = blank_state();
+            for x in 0..5 {
+                for y in 0..5 {
+                    s[x][y] = rng.gen::<u64>();
+                }
+            }
+
+            let s1 = permute(s, r, constants, chi, rot);
+            let s2 = permute(s1, r, constants, chi, rot);
+            let s3 = permute(s2, r, constants, chi, rot);
+            let s4 = permute(s3, r, constants, chi, rot);
+
+            if s4 == s && s1 != s && s2 != s && s3 != s {
                 found += 1;
             }
         }

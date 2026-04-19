@@ -1,0 +1,40 @@
+{
+  "rounds": {
+    "1": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.0008449999999999847
+    },
+    "4": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.00009500000000001174
+    },
+    "5": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.0004899999999999904
+    },
+    "3": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.0008900000000000019
+    },
+    "2": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.00013499999999999623
+    },
+    "6": {
+      "samples": 200000,
+      "input_bit": 0,
+      "output_bit": 0,
+      "bias": 0.0000700000000000145
+    }
+  }
+}

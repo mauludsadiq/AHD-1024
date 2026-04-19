@@ -134,6 +134,16 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "low-weight-baseline" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, ChiVariant::Baseline, &ROT);
+            let path = results_dir().join(format!("low_weight_baseline_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "cube" => {
             let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(256);
             let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
@@ -159,6 +169,45 @@ fn main() {
             let seed = args.get(3).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
             let report = three_cycle_search(&[1,2,3,4,5,6], samples, seed, &constants, ChiVariant::Star, &ROT);
             let path = results_dir().join(format!("three_cycle_samples{}_seed{}.json", samples, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "four-cycle" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200000);
+            let seed = args.get(3).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = four_cycle_search(&[1,2,3,4,5,6], samples, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("four_cycle_samples{}_seed{}.json", samples, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "structured-diff" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(50000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = structured_differential_search(&[1,2,3,4], pairs, msg_len, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("structured_diff_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "structured-diff-baseline" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(50000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = structured_differential_search(&[1,2,3,4], pairs, msg_len, seed, &constants, ChiVariant::Baseline, &ROT);
+            let path = results_dir().join(format!("structured_diff_baseline_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "linear-probe" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = linear_correlation_probe(&[1,2,3,4,5,6], samples, msg_len, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("linear_probe_samples{}_msg{}_seed{}.json", samples, msg_len, seed));
             fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
