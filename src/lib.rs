@@ -596,6 +596,87 @@ pub struct CubeReport {
     pub rounds: HashMap<usize, CubeRoundStats>,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HigherOrderRoundStats {
+    pub order: usize,
+    pub pairs: usize,
+    pub min_changed_bits: u32,
+    pub avg_changed_bits: f64,
+    pub max_changed_bits: u32,
+    pub count_le_32: usize,
+    pub count_le_48: usize,
+    pub count_le_64: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HigherOrderReport {
+    pub rounds: HashMap<usize, HigherOrderRoundStats>,
+}
+
+pub fn higher_order_differential_search(
+    rounds_list: &[usize],
+    pair_count: usize,
+    msg_len: usize,
+    order: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> HigherOrderReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut report = HashMap::new();
+
+    for &rounds in rounds_list {
+        let mut changed_bits = Vec::with_capacity(pair_count);
+        let mut min_bits = u32::MAX;
+        let mut max_bits = 0u32;
+        let mut le32 = 0usize;
+        let mut le48 = 0usize;
+        let mut le64 = 0usize;
+
+        for _ in 0..pair_count {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+            let mut m2 = m.clone();
+
+            let mut positions = HashSet::new();
+            while positions.len() < order {
+                positions.insert(rng.gen_range(0..(msg_len * 8)));
+            }
+            for pos in positions {
+                m2[pos / 8] ^= 1u8 << (pos % 8);
+            }
+
+            let h1 = aha_hash(&m, Domain::Hash, 32, rounds, constants, chi, rot);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, rounds, constants, chi, rot);
+            let d = xor_bytes(&h1, &h2);
+            let bits = popcount_bytes(&d);
+
+            min_bits = min_bits.min(bits);
+            max_bits = max_bits.max(bits);
+            if bits <= 32 { le32 += 1; }
+            if bits <= 48 { le48 += 1; }
+            if bits <= 64 { le64 += 1; }
+            changed_bits.push(bits as f64);
+        }
+
+        report.insert(rounds, HigherOrderRoundStats {
+            order,
+            pairs: pair_count,
+            min_changed_bits: min_bits,
+            avg_changed_bits: changed_bits.iter().sum::<f64>() / changed_bits.len() as f64,
+            max_changed_bits: max_bits,
+            count_le_32: le32,
+            count_le_48: le48,
+            count_le_64: le64,
+        });
+    }
+
+    HigherOrderReport { rounds: report }
+}
+
+
 pub fn cube_probe(
     rounds_list: &[usize],
     samples: usize,

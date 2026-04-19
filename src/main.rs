@@ -165,6 +165,17 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "higher-order" => {
+            let order = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(2);
+            let pairs = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(50000);
+            let msg_len = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(5).and_then(|s| s.parse::<u64>().ok()).unwrap_or(1234);
+            let report = higher_order_differential_search(&[1,2,3,4,5,6], pairs, msg_len, order, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("higher_order_o{}_pairs{}_msg{}_seed{}.json", order, pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "cube" => {
             let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(256);
             let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
