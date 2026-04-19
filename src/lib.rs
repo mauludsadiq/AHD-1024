@@ -181,12 +181,10 @@ pub fn pad_v02(message: &[u8], domain: Domain) -> Vec<u8> {
     out.extend_from_slice(message);
     out.push(domain as u8);
     out.push(0x01);
-    while out.len() % RATE_BYTES != 0 {
+    while out.len() % RATE_BYTES != RATE_BYTES - 1 {
         out.push(0);
     }
-    if let Some(last) = out.last_mut() {
-        *last |= 0x80;
-    }
+    out.push(0x80);
     out
 }
 

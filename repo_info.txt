@@ -1,0 +1,25 @@
+=== PROJECT STRUCTURE ===
+total 48
+drwxr-xr-x@  12 g.bogans  staff   384 Apr 19 02:04 .
+drwx------+ 231 g.bogans  staff  7392 Apr 18 12:35 ..
+drwxr-xr-x@  13 g.bogans  staff   416 Apr 19 00:36 .git
+-rw-r--r--@   1 g.bogans  staff    30 Apr 18 18:33 .gitignore
+-rw-r--r--@   1 g.bogans  staff  7181 Apr 18 12:38 Cargo.lock
+-rw-r--r--@   1 g.bogans  staff   381 Apr 18 10:30 Cargo.toml
+drwxr-xr-x@   3 g.bogans  staff    96 Apr 18 10:34 python_vectors
+-rw-r--r--@   1 g.bogans  staff  2970 Apr 19 01:44 README.md
+-rw-r--r--@   1 g.bogans  staff    26 Apr 19 02:04 repo_info.txt
+drwxr-xr-x@  16 g.bogans  staff   512 Apr 19 00:19 results
+drwxr-xr-x@   4 g.bogans  staff   128 Apr 18 23:57 src
+drwxr-xr-x@   6 g.bogans  staff   192 Apr 18 12:39 target
+
+=== DEPENDENCIES ===
+
+=== GIT INFO ===
+commit ed5a0e4060915d6579b1b291ab2e10951d9d96dd
+Author: G. Bogans <mauludsadiq@gmail.com>
+Date:   Sun Apr 19 00:36:53 2026 +0200
+
+    Add fixed-point, low-weight, and cube attack harness results
+origin	https://github.com/mauludsadiq/AHD-1024.git (fetch)
+origin	https://github.com/mauludsadiq/AHD-1024.git (push)

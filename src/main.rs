@@ -34,10 +34,12 @@ fn main() {
                 "HASH": {
                     "empty": hex_of(&aha_hash(b"", Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT)),
                     "abc": hex_of(&aha_hash(b"abc", Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT)),
+                    "zero126": hex_of(&aha_hash(&vec![0u8; 126], Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT)),
                 },
                 "XOF64": {
                     "empty": hex_of(&aha_hash(b"", Domain::Xof, 64, ROUNDS, &constants, ChiVariant::Star, &ROT)),
                     "abc": hex_of(&aha_hash(b"abc", Domain::Xof, 64, ROUNDS, &constants, ChiVariant::Star, &ROT)),
+                    "zero126": hex_of(&aha_hash(&vec![0u8; 126], Domain::Xof, 64, ROUNDS, &constants, ChiVariant::Star, &ROT)),
                 }
             });
             let path = results_dir().join("vectors.json");
