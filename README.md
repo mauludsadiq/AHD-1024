@@ -111,49 +111,6 @@ cargo run --release -- cube [samples] [msg_len] [cube_bits] [seed]
 
 ---
 
-## Independent Implementation Verification
-
-The AHD-1024 specification has now been validated across multiple independent implementations.
-
-### Implementations
-
-- **Rust (reference implementation)**
-- **Python (independent implementation)**
-
-Both implementations:
-
-- Use the normalized little-endian + canonical padding specification
-- Derive constants deterministically from the same seed
-- Reproduce all frozen test vectors exactly
-
-### Verified Vector Set
-
-The following inputs are fully cross-checked:
-
-- empty message
-- "a"
-- "abc"
-- 52-byte alphabet string
-- 126-byte zero block (normalization boundary case)
-- 128-byte zero block
-- 128-byte 0xFF block
-
-Both HASH (256-bit) and XOF (64-byte) outputs match exactly.
-
-### Result
-
-> Two independent implementations produce identical outputs for all frozen vectors.
-
-This confirms that:
-
-- The specification is unambiguous
-- The normalization decision is correctly implemented
-- No hidden assumptions exist in the reference code
-
-This marks the completion of the first critical verification milestone.
-
----
-
 ## Current Internal Cryptanalytic Picture
 
 Rounds 1–3 show shallow structure under multiple probes.  
@@ -221,13 +178,6 @@ Cycle detection for lengths 2, 3, and 4.
 
 **Conclusion:** Round 3 achieves statistical ideality in differential metrics. Round 4 achieves near-maximum algebraic degree. No structural artifacts detected in any metric through round 6.
 
-## Status
-
-Version: v0.2  
-State: candidate under active internal cryptanalysis
-
----
-
 ## Philosophy
 
 All claims are tied to code and measurable outputs. No assumptions.
@@ -279,9 +229,9 @@ The following inputs are verified across all implementations:
 - "a"
 - "abc"
 - "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" (52 bytes)
-- 0x00 x 126 (boundary case)
-- 0x00 x 128 (full block)
-- 0xff x 128 (max entropy block)
+- 0x00 × 126 bytes (boundary case)
+- 0x00 × 128 bytes (full block)
+- 0xff × 128 bytes (max entropy block)
 
 Artifacts:
 - spec/test-vectors/hash-and-xof-prefreeze.json
@@ -289,11 +239,11 @@ Artifacts:
 
 Python verification:
     python3 impl/python/test_vectors.py
-    -> ALL_OK
+    Expected output: ALL_OK
 
 C verification:
     cc -O2 -std=c11 -Iimpl/c impl/c/ahd1024.c impl/c/test_vectors.c -o test && ./test
-    -> ALL_OK
+    Expected output: ALL_OK
 
 ---
 
@@ -302,11 +252,11 @@ C verification:
 AHD-1024 is now:
 - **Unambiguously specified**
 - **Independently implementable**
-- **Cross-language deterministic**
+- **Deterministic across implementations**
 - **Fully reproducible from spec artifacts**
 
 This satisfies the core requirement for a cryptographic candidate:
-  Two (now three) independent implementers can read the spec and produce identical outputs.
+  Three independent implementations derived from the specification produce identical outputs.
 
 ---
 
@@ -338,7 +288,7 @@ will require a **new major version**
 ### Summary
 
 AHD-1024 has transitioned from:
-  "Working design"
+  Working design
 
 to:
   **Reproducible cryptographic candidate with independent verification**
