@@ -637,6 +637,85 @@ pub fn stronger_reduced_round_search(
     }
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AvalancheMatrixReport {
+    pub n_input_bits: usize,
+    pub n_output_bits: usize,
+    pub pairs_per_input_bit: usize,
+    pub matrix: Vec<Vec<f64>>,
+    pub global_min_prob: f64,
+    pub global_max_prob: f64,
+    pub global_mean_abs_dev: f64,
+    pub global_max_abs_dev: f64,
+}
+
+pub fn avalanche_matrix_stats(
+    msg_len: usize,
+    n_input_bits: usize,
+    n_msgs_per_input: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> AvalancheMatrixReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let n_output_bits = 256usize;
+    let mut counts = vec![vec![0usize; n_output_bits]; n_input_bits];
+
+    for input_bit in 0..n_input_bits {
+        for _ in 0..n_msgs_per_input {
+            let mut msg = vec![0u8; msg_len];
+            rng.fill(&mut msg[..]);
+            let base = aha_hash(&msg, Domain::Hash, 32, ROUNDS, constants, chi, rot);
+            let mut m2 = msg.clone();
+            m2[input_bit / 8] ^= 1u8 << (input_bit % 8);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, ROUNDS, constants, chi, rot);
+            let diff = xor_bytes(&base, &h2);
+            for (j, byte) in diff.iter().enumerate() {
+                for k in 0..8 {
+                    if (byte >> k) & 1 == 1 {
+                        counts[input_bit][j * 8 + k] += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    let matrix: Vec<Vec<f64>> = counts.iter()
+        .map(|row| row.iter().map(|&c| c as f64 / n_msgs_per_input as f64).collect())
+        .collect();
+
+    let mut global_min_prob = f64::INFINITY;
+    let mut global_max_prob = f64::NEG_INFINITY;
+    let mut global_abs_dev_sum = 0.0f64;
+    let mut global_max_abs_dev = 0.0f64;
+    let mut total_cells = 0usize;
+
+    for row in &matrix {
+        for &p in row {
+            global_min_prob = global_min_prob.min(p);
+            global_max_prob = global_max_prob.max(p);
+            let d = (p - 0.5).abs();
+            global_abs_dev_sum += d;
+            global_max_abs_dev = global_max_abs_dev.max(d);
+            total_cells += 1;
+        }
+    }
+
+    AvalancheMatrixReport {
+        n_input_bits,
+        n_output_bits,
+        pairs_per_input_bit: n_msgs_per_input,
+        matrix,
+        global_min_prob,
+        global_max_prob,
+        global_mean_abs_dev: global_abs_dev_sum / total_cells as f64,
+        global_max_abs_dev,
+    }
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AvalancheReport {
     pub pairs: usize,
