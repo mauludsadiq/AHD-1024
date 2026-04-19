@@ -319,6 +319,55 @@ Artifacts:
 - `results/linear_matrix_in128_out256_samples16384_msg96_seed1234.json`
 
 
+### Phase 3 Result: Higher-Order Differential Screening
+
+Higher-order differential scans have now been added for orders `2` and `3`.
+
+Measured runs:
+- `order = 2`, `50000` pairs, `msg_len = 96`
+- `order = 3`, `50000` pairs, `msg_len = 96`
+
+Key results:
+
+#### Order 2
+- Round `1`:
+  - `avg_changed_bits = 14.77528`
+  - fully low-weight, as expected
+- Round `2`:
+  - `avg_changed_bits = 125.46526`
+  - residual low-weight tail remains:
+    - `count_le_32 = 19`
+    - `count_le_48 = 69`
+    - `count_le_64 = 88`
+- Rounds `3–6`:
+  - `avg_changed_bits ≈ 128`
+  - `min_changed_bits >= 95`
+  - `count_le_32 = count_le_48 = count_le_64 = 0`
+
+#### Order 3
+- Round `1`:
+  - `avg_changed_bits = 21.45112`
+  - still shallow, as expected
+- Round `2`:
+  - `avg_changed_bits = 127.24164`
+  - `min_changed_bits = 93`
+  - `count_le_32 = count_le_48 = count_le_64 = 0`
+- Rounds `3–6`:
+  - `avg_changed_bits ≈ 128`
+  - `min_changed_bits >= 90`
+  - `count_le_32 = count_le_48 = count_le_64 = 0`
+
+Interpretation:
+
+- Order-2 differentials retain a very small round-2 low-weight tail, but that tail disappears by round `3`.
+- Order-3 differentials are already fully mixed by round `2` at this resolution.
+- Across rounds `3–6`, both orders show no low-weight residual at the tested thresholds.
+
+Artifacts:
+- `results/higher_order_o2_pairs50000_msg96_seed1234.json`
+- `results/higher_order_o3_pairs50000_msg96_seed1234.json`
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
