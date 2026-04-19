@@ -111,6 +111,49 @@ cargo run --release -- cube [samples] [msg_len] [cube_bits] [seed]
 
 ---
 
+## Independent Implementation Verification
+
+The AHD-1024 specification has now been validated across multiple independent implementations.
+
+### Implementations
+
+- **Rust (reference implementation)**
+- **Python (independent implementation)**
+
+Both implementations:
+
+- Use the normalized little-endian + canonical padding specification
+- Derive constants deterministically from the same seed
+- Reproduce all frozen test vectors exactly
+
+### Verified Vector Set
+
+The following inputs are fully cross-checked:
+
+- empty message
+- "a"
+- "abc"
+- 52-byte alphabet string
+- 126-byte zero block (normalization boundary case)
+- 128-byte zero block
+- 128-byte 0xFF block
+
+Both HASH (256-bit) and XOF (64-byte) outputs match exactly.
+
+### Result
+
+> Two independent implementations produce identical outputs for all frozen vectors.
+
+This confirms that:
+
+- The specification is unambiguous
+- The normalization decision is correctly implemented
+- No hidden assumptions exist in the reference code
+
+This marks the completion of the first critical verification milestone.
+
+---
+
 ## Current Internal Cryptanalytic Picture
 
 Rounds 1–3 show shallow structure under multiple probes.  
