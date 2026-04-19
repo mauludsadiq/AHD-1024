@@ -233,6 +233,18 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "linear-matrix" => {
+            let n_input_bits = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(64);
+            let n_output_bits = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(256);
+            let samples_per_input = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(4096);
+            let msg_len = args.get(5).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(6).and_then(|s| s.parse::<u64>().ok()).unwrap_or(1234);
+            let report = linear_correlation_matrix(&[1,2,3,4,5,6], samples_per_input, msg_len, n_input_bits, n_output_bits, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("linear_matrix_in{}_out{}_samples{}_msg{}_seed{}.json", n_input_bits, n_output_bits, samples_per_input, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         _ => usage(),
     }
 }

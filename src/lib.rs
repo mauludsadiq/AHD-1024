@@ -336,6 +336,82 @@ pub struct LinearReport {
     pub rounds: HashMap<usize, LinearRoundStats>,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinearMatrixReport {
+    pub n_input_bits: usize,
+    pub n_output_bits: usize,
+    pub samples_per_input_bit: usize,
+    pub rounds: HashMap<usize, Vec<Vec<f64>>>,
+    pub round_global_max_bias: HashMap<usize, f64>,
+    pub round_global_mean_bias: HashMap<usize, f64>,
+}
+
+pub fn linear_correlation_matrix(
+    rounds_list: &[usize],
+    samples_per_input_bit: usize,
+    msg_len: usize,
+    n_input_bits: usize,
+    n_output_bits: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> LinearMatrixReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut rounds = HashMap::new();
+    let mut round_global_max_bias = HashMap::new();
+    let mut round_global_mean_bias = HashMap::new();
+
+    for &r in rounds_list {
+        let mut matrix = vec![vec![0.0_f64; n_output_bits]; n_input_bits];
+        let mut max_bias = 0.0_f64;
+        let mut sum_bias = 0.0_f64;
+        let mut cells = 0usize;
+
+        for input_bit in 0..n_input_bits {
+            let mut equal_counts = vec![0usize; n_output_bits];
+
+            for _ in 0..samples_per_input_bit {
+                let mut m = vec![0u8; msg_len];
+                rng.fill(&mut m[..]);
+                let in_bit = (m[input_bit / 8] >> (input_bit % 8)) & 1;
+                let h = aha_hash(&m, Domain::Hash, 32, r, constants, chi, rot);
+
+                for output_bit in 0..n_output_bits {
+                    let out_bit = (h[output_bit / 8] >> (output_bit % 8)) & 1;
+                    if in_bit == out_bit {
+                        equal_counts[output_bit] += 1;
+                    }
+                }
+            }
+
+            for output_bit in 0..n_output_bits {
+                let p = equal_counts[output_bit] as f64 / samples_per_input_bit as f64;
+                let bias = (p - 0.5).abs();
+                matrix[input_bit][output_bit] = bias;
+                max_bias = max_bias.max(bias);
+                sum_bias += bias;
+                cells += 1;
+            }
+        }
+
+        round_global_max_bias.insert(r, max_bias);
+        round_global_mean_bias.insert(r, sum_bias / cells as f64);
+        rounds.insert(r, matrix);
+    }
+
+    LinearMatrixReport {
+        n_input_bits,
+        n_output_bits,
+        samples_per_input_bit,
+        rounds,
+        round_global_max_bias,
+        round_global_mean_bias,
+    }
+}
+
+
 pub fn linear_correlation_probe(
     rounds_list: &[usize],
     samples: usize,
