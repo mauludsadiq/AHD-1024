@@ -639,6 +639,85 @@ pub struct FixedPointReport {
     pub rounds: HashMap<usize, usize>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CycleReport {
+    pub samples: usize,
+    pub rounds: HashMap<usize, usize>, // count of cycles found
+}
+
+pub fn two_cycle_search(
+    rounds_list: &[usize],
+    samples: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> CycleReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut found = 0usize;
+
+        for _ in 0..samples {
+            let mut s = blank_state();
+            for x in 0..5 {
+                for y in 0..5 {
+                    s[x][y] = rng.gen::<u64>();
+                }
+            }
+
+            let s1 = permute(s, r, constants, chi, rot);
+            let s2 = permute(s1, r, constants, chi, rot);
+
+            if s2 == s && s1 != s {
+                found += 1;
+            }
+        }
+
+        results.insert(r, found);
+    }
+
+    CycleReport { samples, rounds: results }
+}
+
+pub fn three_cycle_search(
+    rounds_list: &[usize],
+    samples: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> CycleReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut found = 0usize;
+
+        for _ in 0..samples {
+            let mut s = blank_state();
+            for x in 0..5 {
+                for y in 0..5 {
+                    s[x][y] = rng.gen::<u64>();
+                }
+            }
+
+            let s1 = permute(s, r, constants, chi, rot);
+            let s2 = permute(s1, r, constants, chi, rot);
+            let s3 = permute(s2, r, constants, chi, rot);
+
+            if s3 == s && s1 != s && s2 != s {
+                found += 1;
+            }
+        }
+
+        results.insert(r, found);
+    }
+
+    CycleReport { samples, rounds: results }
+}
+
 pub fn fixed_point_search(
     rounds_list: &[usize],
     samples: usize,

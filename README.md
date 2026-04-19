@@ -1,15 +1,15 @@
 # AHD-1024 (AHA-D-256 v0.2)
 
-AHD-1024 is a candidate cryptographic hash construction based on a 1600-bit sponge permutation with a custom round function, asymmetric constant injection, and a full empirical analysis harness.
+AHD-1024 is a candidate cryptographic hash construction built around a 1600-bit sponge permutation with a custom round function, asymmetric constant injection, deterministic constant derivation, and an expanding empirical attack harness.
 
 This repository contains:
 
-* A **reference Rust implementation**
-* **Deterministic constant derivation**
-* **Cross-checked test vectors (Python ↔ Rust)**
-* **Avalanche, differential, ANF, and symmetry analysis tools**
+* a **reference Rust implementation**
+* **deterministic constant derivation**
+* **cross-checked test vectors (Python ↔ Rust)**
+* **avalanche, reduced-round, ANF, fixed-point, low-weight, rotation, and cube-style parity probes**
 
-The goal is not “yet another hash,” but a **fully inspectable, reproducible cryptographic candidate** with measurable properties.
+The aim is not to claim security by assertion. The aim is to define a candidate, implement it exactly, and subject it to reproducible attack-oriented measurement.
 
 ---
 
@@ -26,55 +26,43 @@ The goal is not “yet another hash,” but a **fully inspectable, reproducible 
 
 ---
 
-## Design Structure
+## Round Structure
 
-Each round:
+Each round is:
 
 Θ → Π → Ρ → Χ → Ι
 
-* **Θ (Theta)**: column parity diffusion with multi-rotation mixing
+* **Θ (Theta)**: column parity diffusion with multi-rotation coupling
 * **Π (Pi)**: bijective lane permutation
-* **Ρ (Rho)**: lane rotations (non-symmetric table)
-* **Χ (Chi*)**: nonlinear layer (extended vs Keccak-style)
-* **Ι (Iota)**: asymmetric constant injection (3 lanes per round)
+* **Ρ (Rho)**: lane-wise rotations from a fixed offset table
+* **Χ (Chi\*)**: extended nonlinear row function
+* **Ι (Iota)**: asymmetric injection of three round constants
 
 ---
 
 ## Constant Derivation
 
-Constants are **not hardcoded**.
+Constants are not arbitrarily chosen.
 
-They are derived deterministically:
+They are derived deterministically from SHAKE256:
 
-```
-Seed = "AHA-D-256-ROUND-CONSTANTS-v0.1"
-K = SHAKE256(Seed)
-```
+Seed = "AHA-D-256-ROUND-CONSTANTS-v0.1"  
+Material = SHAKE256(Seed)
 
-→ parsed into 72 × 64-bit values
-
-This guarantees:
-
-* reproducibility
-* no hidden structure
-* no “nothing-up-my-sleeve” ambiguity
+Parsed into 72 little-endian 64-bit values grouped into K0, K1, K2.
 
 ---
 
-## Implementation
+## Build
 
-### Build
-
-```bash
 cargo build --release
-```
 
-### Run hash / vectors
+---
 
-```bash
-cargo run --release -- vectors
+## Basic Verification
+
+cargo run --release -- vectors  
 cargo run --release -- cross-check
-```
 
 ---
 
@@ -82,137 +70,65 @@ cargo run --release -- cross-check
 
 ### Reduced-round differential search
 
-```bash
-cargo run --release -- reduced-search [pairs] [msg_len] [seed]
+cargo run --release -- reduced-search [pairs] [msg_len] [seed]  
 cargo run --release -- reduced-search-shifted [pairs] [msg_len] [seed]
-```
-
-Measures:
-
-* output difference uniqueness
-* collision patterns
-* diffusion quality
 
 ---
 
-### Avalanche testing
+### Avalanche analysis
 
-```bash
 cargo run --release -- avalanche [n_msgs] [flips_per_msg] [msg_len] [seed]
-```
-
-Example result:
-
-* avg flip rate ≈ **0.5001**
-* max deviation ≈ **0.0028**
-
-This is near-ideal.
 
 ---
 
-### Exact ANF (Algebraic Degree)
+### Exact ANF subspace experiments
 
-```bash
 cargo run --release -- anf-small [lane_width] [rounds] [tracked_outputs]
-```
-
-Constraints:
-
-* exact truth-table expansion ≤ 16 variables
-
-Observed:
-
-| lane width | round | degree           |
-| ---------- | ----- | ---------------- |
-| 4          | 4     | ~16 (saturation) |
-
-This confirms **rapid algebraic degree growth**, not just theoretical bounds.
 
 ---
 
-### Rotation Symmetry Test
+### Rotation symmetry screening
 
-```bash
 cargo run --release -- rotation-test [samples] [msg_len] [seed]
-```
-
-Tests for:
-
-> f(rot(x)) = rot(f(x))
-
-Result (after fixing byte-alignment artifact):
-
-* **0 surviving rotational matches (rounds 1–6)**
-
-This eliminates simple rotational invariants.
 
 ---
 
-## Current Empirical Results
+### Fixed-point search
 
-* Strong avalanche behavior (~0.5)
-* No repeated output differences in large random sampling
-* Rapid ANF degree growth (saturates small domains)
-* No observed rotational symmetry (nontrivial)
-* No structural distinction between baseline and shifted rotation table under random testing
+cargo run --release -- fixed-point [samples] [seed]
 
 ---
 
-## Repository Structure
+### Low-weight differential search
 
-```
-AHD-1024/
-├── Cargo.toml
-├── src/
-│   ├── lib.rs        # core permutation + hash
-│   └── main.rs       # CLI + analysis tools
-├── python_vectors/
-│   └── results_v0_2.json
-├── results/          # generated experiment outputs
-├── README.md
-└── .gitignore
-```
+cargo run --release -- low-weight [pairs] [msg_len] [seed]
+
+---
+
+### Cube parity probe
+
+cargo run --release -- cube [samples] [msg_len] [cube_bits] [seed]
+
+---
+
+## Current Internal Cryptanalytic Picture
+
+Rounds 1–3 show shallow structure under multiple probes.  
+Round 4 is the first point where current attacks stop exposing cheap structure.  
+Rounds 5–6 remain stable under current harness.
 
 ---
 
 ## Status
 
-**Version:** v0.2
-**State:** Candidate under internal cryptanalysis
-
-This is not production-ready cryptography.
-
-It is:
-
-* a **structured candidate**
-* with **measurable properties**
-* and a **reproducible analysis pipeline**
-
----
-
-## Next Steps
-
-Planned directions:
-
-* Fixed-point search
-* Low-weight differential exploration
-* Division property / cube analysis
-* Lane-level rotational invariance checks
-* Formal spec extraction (v1.0 candidate)
+Version: v0.2  
+State: candidate under active internal cryptanalysis
 
 ---
 
 ## Philosophy
 
-This project treats cryptography as:
-
-> something to be *measured, reproduced, and broken* — not assumed.
-
-Every claim here is:
-
-* backed by code
-* reproducible
-* falsifiable
+All claims are tied to code and measurable outputs. No assumptions.
 
 ---
 

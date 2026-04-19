@@ -145,6 +145,24 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "two-cycle" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200000);
+            let seed = args.get(3).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = two_cycle_search(&[1,2,3,4,5,6], samples, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("two_cycle_samples{}_seed{}.json", samples, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "three-cycle" => {
+            let samples = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200000);
+            let seed = args.get(3).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let report = three_cycle_search(&[1,2,3,4,5,6], samples, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("three_cycle_samples{}_seed{}.json", samples, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         _ => usage(),
     }
 }
