@@ -178,17 +178,6 @@ Cycle detection for lengths 2, 3, and 4.
 
 **Conclusion:** Round 3 achieves statistical ideality in differential metrics. Round 4 achieves near-maximum algebraic degree. No structural artifacts detected in any metric through round 6.
 
-## Philosophy
-
-All claims are tied to code and measurable outputs. No assumptions.
-
----
-
-## License
-
-MUI
-
-
 ## Status
 
 AHD-1024 has reached a critical reproducibility milestone.
@@ -293,3 +282,12 @@ AHD-1024 has transitioned from:
 to:
   **Reproducible cryptographic candidate with independent verification**
 
+## Philosophy
+
+All claims are tied to code and measurable outputs. No assumptions.
+
+---
+
+## License
+
+MUI
