@@ -238,3 +238,108 @@ All claims are tied to code and measurable outputs. No assumptions.
 
 MUI
 
+
+## Status
+
+AHD-1024 has reached a critical reproducibility milestone.
+
+### Specification
+
+- Endianness and padding normalization: ✅ Complete
+- Canonical mapping (bytes → lanes → state): ✅ Defined
+- Domain separation scheme: ✅ Defined
+- Padding rule (0x01 || 0x00* || 0x80): ✅ Frozen
+
+See:
+- spec/endianness-padding-normalization.md
+
+---
+
+### Independent Implementations
+
+Three independent implementations now exist and agree exactly on all frozen test vectors:
+
+| Language | Status | Notes |
+|----------|--------|-------|
+| Rust     | ✅ Reference | Primary implementation |
+| Python   | ✅ Independent | Clean, readable, matches spec exactly |
+| C        | ✅ Independent | Minimal, portable, constant-embedded |
+
+All three implementations produce **bit-identical outputs** for:
+- Hash mode (32 bytes)
+- XOF mode (64 bytes)
+- All canonical test vectors
+
+---
+
+### Verified Test Coverage
+
+The following inputs are verified across all implementations:
+- "" (empty)
+- "a"
+- "abc"
+- "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" (52 bytes)
+- 0x00 x 126 (boundary case)
+- 0x00 x 128 (full block)
+- 0xff x 128 (max entropy block)
+
+Artifacts:
+- spec/test-vectors/hash-and-xof-prefreeze.json
+- spec/constants/round-constants-prefreeze.json
+
+Python verification:
+    python3 impl/python/test_vectors.py
+    -> ALL_OK
+
+C verification:
+    cc -O2 -std=c11 -Iimpl/c impl/c/ahd1024.c impl/c/test_vectors.c -o test && ./test
+    -> ALL_OK
+
+---
+
+### What This Means
+
+AHD-1024 is now:
+- **Unambiguously specified**
+- **Independently implementable**
+- **Cross-language deterministic**
+- **Fully reproducible from spec artifacts**
+
+This satisfies the core requirement for a cryptographic candidate:
+  Two (now three) independent implementers can read the spec and produce identical outputs.
+
+---
+
+### Next Phase
+
+Phase 3: Extended Empirical Cryptanalysis
+- Full 24-round avalanche matrix
+- Linear trail search (MILP/SAT)
+- Higher-order differential probes
+- Bias analysis across all output bits
+- Lane activity propagation metrics
+
+---
+
+### Version
+
+Current state: **v1.0-pre (post-normalization, pre-freeze)**
+
+Any change to:
+- padding
+- endianness
+- constants
+- round structure
+
+will require a **new major version**
+
+---
+
+### Summary
+
+AHD-1024 has transitioned from:
+  "Working design"
+
+to:
+  **Reproducible cryptographic candidate with independent verification**
+
