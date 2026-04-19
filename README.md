@@ -366,6 +366,27 @@ Interpretation:
 Artifacts:
 - `results/higher_order_o2_pairs50000_msg96_seed1234.json`
 - `results/higher_order_o3_pairs50000_msg96_seed1234.json`
+- `results/higher_order_o4_pairs50000_msg96_seed1234.json`
+
+#### Order 4
+- Round `1`:
+  - `avg_changed_bits = 27.73712`
+  - still shallow, as expected
+- Round `2`:
+  - `avg_changed_bits = 127.6997`
+  - `min_changed_bits = 96`
+  - `count_le_32 = count_le_48 = count_le_64 = 0`
+- Rounds `3–6`:
+  - `avg_changed_bits ≈ 128`
+  - `min_changed_bits >= 91`
+  - `count_le_32 = count_le_48 = count_le_64 = 0`
+
+Updated interpretation:
+
+- Order-2 differentials retain a very small round-2 low-weight tail, but that tail disappears by round `3`.
+- Order-3 differentials are already fully mixed by round `2` at this resolution.
+- Order-4 differentials are also fully mixed by round `2` at this resolution.
+- Across rounds `3–6`, all tested higher orders show no low-weight residual at the tested thresholds.
 
 
 ### Next Phase
