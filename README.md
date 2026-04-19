@@ -389,14 +389,57 @@ Updated interpretation:
 - Across rounds `3–6`, all tested higher orders show no low-weight residual at the tested thresholds.
 
 
+### Phase 3 Result: Lane Activity Propagation
+
+A lane-activity propagation probe has now been completed using `50000` samples at `msg_len = 96`.
+
+Measured run:
+- `results/lane_activity_samples50000_msg96_seed1234.json`
+
+Key results:
+- Round `1`:
+  - `active_output_bits_avg = 7.6146`
+  - `active_output_bits_min = 2`
+  - `active_output_bits_max = 15`
+- Round `2`:
+  - `active_output_bits_avg = 115.53068`
+  - `active_output_bits_min = 75`
+  - `active_output_bits_max = 157`
+- Round `3`:
+  - `active_output_bits_avg = 128.09118`
+  - `active_output_bits_min = 94`
+  - `active_output_bits_max = 158`
+- Round `4`:
+  - `active_output_bits_avg = 127.90678`
+  - `active_output_bits_min = 92`
+  - `active_output_bits_max = 162`
+- Round `5`:
+  - `active_output_bits_avg = 128.0262`
+  - `active_output_bits_min = 95`
+  - `active_output_bits_max = 162`
+- Round `6`:
+  - `active_output_bits_avg = 127.99412`
+  - `active_output_bits_min = 95`
+  - `active_output_bits_max = 161`
+
+Interpretation:
+- Round `2` already shows strong expansion from a single input-bit flip.
+- Round `3` is effectively saturated.
+- Rounds `3–6` remain stable with no sign of weak propagation bands.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- Full 24-round avalanche matrix
-- Linear trail search (MILP/SAT)
-- Higher-order differential probes
-- Bias analysis across all output bits
-- Lane activity propagation metrics
+- Boomerang-style connectivity tests on reduced rounds
+- SAT/MILP-style reduced-round structure search
+- Full 24-round avalanche expansion
+- Additional higher-order differential orders as needed
+
+Decision:
+- Next strongest move: **boomerang-style connectivity tests**
+- Reason: current avalanche, linear, higher-order, and activity screens are all favorable; the best next discriminator is whether reduced-round quartet connectivity reveals structure that pairwise probes do not.
+- After boomerang screening: move to **SAT/MILP-style reduced-round structure** for explicit bounded-search pressure.
 
 ---
 
