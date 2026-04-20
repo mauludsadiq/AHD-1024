@@ -23,7 +23,25 @@ The input domain is any byte string of length 0 or greater. Bit-string inputs of
 
 ## 2  Notation and Conventions
 
-### 2.1  Basic Types
+### 2.1  Glossary
+
+| Term | Definition |
+|------|------------|
+| Sponge construction | A mode of operation for a fixed-length permutation that supports arbitrary-length input and output. Consists of an absorb phase and a squeeze phase separated by the permutation. |
+| Permutation | A bijective function on a fixed-size state. AHD-1024 uses a 1600-bit permutation applied once per input block and once per output block beyond the first. |
+| Rate | The portion of the state XORed with input (absorb) or extracted as output (squeeze). AHD-1024 rate = 1024 bits = 128 bytes. |
+| Capacity | The portion of the state not directly exposed to input or output. AHD-1024 capacity = 576 bits. Determines generic security bounds. |
+| Lane | A 64-bit word within the 5x5 state array. There are 25 lanes total. |
+| Absorption | The process of XORing padded input blocks into the rate portion of the state, each followed by a permutation call. |
+| Squeezing | The process of extracting output bytes from the rate portion of the state, applying the permutation between extractions when more output is needed. |
+| Domain separation | A mechanism to ensure that two different modes (e.g. hash and XOF) applied to the same input produce independent outputs. Achieved here via a suffix byte appended before padding. |
+| Padding | Bytes appended to the message to make its length a multiple of the rate. Ensures unambiguous parsing of any input. |
+| Little-endian | Byte ordering where the least-significant byte appears first. All lane serialisation in this specification is little-endian. |
+| ROL(v, n) | Left rotation of a 64-bit value v by n bit positions. Equivalent to (v << n) | (v >> (64 - n)), with n reduced mod 64. |
+| Hash mode | AHD-1024-256: fixed 32-byte output, single squeeze without additional permutation calls. |
+| XOF mode | AHD-1024-XOF: variable-length output, squeeze continues across permutation calls until L bytes are produced. |
+
+### 2.2  Symbolic Notation
 
 | Symbol     | Meaning |
 |------------|---------|
@@ -38,7 +56,7 @@ The input domain is any byte string of length 0 or greater. Bit-string inputs of
 | 0x...      | Hexadecimal literal |
 | LE64(v)    | 64-bit value v serialised as 8 bytes, little-endian |
 
-### 2.2  Bit and Byte Numbering
+### 2.3  Bit and Byte Numbering
 
 Within a 64-bit lane, bit 0 is the least-significant bit. Within a byte, bit 0 is the least-significant bit. Byte index 0 is the first byte of a sequence.
 
