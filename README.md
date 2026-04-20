@@ -482,17 +482,53 @@ Interpretation:
 - Round `3` and beyond are clean at current resolution.
 
 
+### Phase 3 Result: Full 24-Round Avalanche Expansion
+
+A full avalanche expansion across rounds `1–24` has now been completed.
+
+Measured run:
+- `results/avalanche_24_msgs1024_flips32_msg96_seed1234.json`
+
+Key results:
+
+- Round `1`:
+  - `avg_changed_bits = 7.62603759765625`
+  - `output_flip_mean_prob = 0.029789209365844727`
+  - shallow, as expected
+
+- Round `2`:
+  - `avg_changed_bits = 115.55368041992188`
+  - `output_flip_mean_prob = 0.4513815641403198`
+  - `output_flip_max_abs_dev = 0.069854736328125`
+  - clearly transitional
+
+- Round `3`:
+  - `avg_changed_bits = 128.0347900390625`
+  - `output_flip_mean_prob = 0.5001358985900879`
+  - first statistically ideal round
+
+- Rounds `4–24`:
+  - `avg_changed_bits ≈ 128`
+  - `output_flip_mean_prob ≈ 0.5`
+  - deviations remain in the small sampling-noise band
+
+Interpretation:
+- Round `1` is shallow.
+- Round `2` is the last visibly non-ideal avalanche regime.
+- Rounds `3–24` are avalanche-stable at current resolution.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- Full 24-round avalanche expansion
 - Additional higher-order differential orders as needed
 - Stronger exact reduced-round constraint modeling if needed
+- External review / independent cryptanalytic replication
 
 Decision:
 - Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens.
-- Next strongest move: **full 24-round avalanche expansion**
-- After that: only push into stronger exact reduced-round constraint modeling if a new signal appears.
+- The 24-round avalanche expansion is now complete.
+- Next strongest move: only push into stronger exact reduced-round constraint modeling if a new signal appears, or hand the candidate to external review.
 
 ---
 
