@@ -428,18 +428,35 @@ Interpretation:
 - Rounds `3–6` remain stable with no sign of weak propagation bands.
 
 
+### Phase 3 Result: Short-Cycle / Quartet-Connectivity Screening
+
+Short-cycle connectivity screens have been rerun at `200000` samples across rounds `1–6`.
+
+Measured runs:
+- `results/two_cycle_samples200000_seed7.json`
+- `results/three_cycle_samples200000_seed7.json`
+- `results/four_cycle_samples200000_seed7.json`
+
+Results:
+- `two-cycle`: all zero across rounds `1–6`
+- `three-cycle`: all zero across rounds `1–6`
+- `four-cycle`: all zero across rounds `1–6`
+
+Interpretation:
+- No immediate short-cycle or quartet-style connectivity artifact is visible under this screen.
+- This does not prove absence of deeper boomerang structure, but it removes the most obvious reduced-round cycle signal at the tested depth.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- Boomerang-style connectivity tests on reduced rounds
 - SAT/MILP-style reduced-round structure search
 - Full 24-round avalanche expansion
 - Additional higher-order differential orders as needed
 
 Decision:
-- Next strongest move: **boomerang-style connectivity tests**
-- Reason: current avalanche, linear, higher-order, and activity screens are all favorable; the best next discriminator is whether reduced-round quartet connectivity reveals structure that pairwise probes do not.
-- After boomerang screening: move to **SAT/MILP-style reduced-round structure** for explicit bounded-search pressure.
+- Next strongest move: **SAT/MILP-style reduced-round structure search**
+- Reason: avalanche, linear, higher-order, lane-activity, and short-cycle/quartet connectivity screens are all currently favorable.
 
 ---
 
