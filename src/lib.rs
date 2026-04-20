@@ -886,7 +886,7 @@ pub fn cube_probe(
     for &rounds in rounds_list {
         let mut parity_one = 0usize;
         let mut parity_zero = 0usize;
-        let mut parity_unused = 0usize;
+        let parity_unused = 0usize;
 
         for _ in 0..samples {
             let mut base = vec![0u8; msg_len];
