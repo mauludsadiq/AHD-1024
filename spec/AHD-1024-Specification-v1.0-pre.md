@@ -523,43 +523,6 @@ Output:     L bytes
 > **NOTE** L = 0 is valid and returns an empty byte string.
 
 ---
-
-    return output[:L]
-```
-
-For AHD-1024-256, call AHD1024(M, HASH, 32).
-For AHD-1024-XOF, call AHD1024(M, XOF, L) for any L >= 0.
-
-### 9.2  AHD-1024-256 (Hash Mode)
-
-```
-Identifier: AHD-1024-256
-Input:      byte string M, |M| >= 0
-Output:     32 bytes
-
-1. Initialise state to all zeros.
-2. Absorb M with domain suffix 0x01  (Section 6.1).
-3. Squeeze 32 bytes  (Section 6.2).
-4. Return the 32 bytes.
-```
-
-### 9.3  AHD-1024-XOF (Extendable Output Mode)
-
-```
-Identifier: AHD-1024-XOF
-Input:      byte string M, |M| >= 0; output length L >= 0
-Output:     L bytes
-
-1. Initialise state to all zeros.
-2. Absorb M with domain suffix 0x01  (Section 6.1).
-3. Squeeze L bytes  (Section 6.3).
-4. Return the L bytes.
-```
-
-> **NOTE** L = 0 is valid and returns an empty byte string.
-
----
-
 ## 10  Conformance
 
 ### 10.1  Requirements
@@ -659,13 +622,9 @@ static void check(const uint8_t *msg, size_t len, const char *expected) {
         sprintf(hex + 2*i, "%02x", out[i]);
     hex[64] = 0;
     if (strcmp(hex, expected) == 0)
-        printf("OK
-");
+        printf("OK\n");
     else {
-        printf("FAIL
-  expected: %s
-  got:      %s
-", expected, hex);
+        printf("FAIL\n  expected: %s\n  got:      %s\n", expected, hex);
     }
 }
 
