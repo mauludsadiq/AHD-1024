@@ -24,6 +24,17 @@ fn main() {
     }
     let constants = derive_constants();
     match args[1].as_str() {
+        "trace-diff" => {
+            let rounds = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(3);
+            let bit = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+            let mut delta = blank_state();
+            delta[(bit / 64) % 5][(bit / 320) % 5] = 1u64 << (bit % 64);
+            let report = trace_difference(delta, rounds, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("trace_diff_r{}_bit{}.json", rounds, bit));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "vectors" => {
             let out = json!({
                 "constants": {

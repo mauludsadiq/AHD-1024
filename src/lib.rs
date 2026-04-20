@@ -162,6 +162,79 @@ pub enum ChiVariant {
     Baseline,
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RoundTraceEntry {
+    pub round: usize,
+    pub after_theta_weight: u32,
+    pub after_pi_weight: u32,
+    pub after_rho_weight: u32,
+    pub after_chi_weight: u32,
+    pub after_iota_weight: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DifferenceTraceReport {
+    pub input_weight: u32,
+    pub rounds: Vec<RoundTraceEntry>,
+}
+
+fn popcount_state(s: &State) -> u32 {
+    let mut w = 0u32;
+    for x in 0..5 {
+        for y in 0..5 {
+            w += s[x][y].count_ones();
+        }
+    }
+    w
+}
+
+pub fn trace_difference(
+    delta_in: State,
+    rounds: usize,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> DifferenceTraceReport {
+    let mut s = delta_in;
+    let mut out = Vec::with_capacity(rounds);
+
+    for t in 0..rounds {
+        s = theta(&s);
+        let after_theta_weight = popcount_state(&s);
+
+        s = pi_stage(&s);
+        let after_pi_weight = popcount_state(&s);
+
+        s = rho(&s, rot);
+        let after_rho_weight = popcount_state(&s);
+
+        s = match chi {
+            ChiVariant::Star => chi_star(&s),
+            ChiVariant::Baseline => chi_baseline(&s),
+        };
+        let after_chi_weight = popcount_state(&s);
+
+        s = iota(&s, t, constants);
+        let after_iota_weight = popcount_state(&s);
+
+        out.push(RoundTraceEntry {
+            round: t + 1,
+            after_theta_weight,
+            after_pi_weight,
+            after_rho_weight,
+            after_chi_weight,
+            after_iota_weight,
+        });
+    }
+
+    DifferenceTraceReport {
+        input_weight: popcount_state(&delta_in),
+        rounds: out,
+    }
+}
+
+
 pub fn permute(mut s: State, rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> State {
     for t in 0..rounds {
         s = theta(&s);

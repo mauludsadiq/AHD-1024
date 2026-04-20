@@ -1,0 +1,29 @@
+{
+  "input_weight": 1,
+  "rounds": [
+    {
+      "round": 1,
+      "after_theta_weight": 16,
+      "after_pi_weight": 16,
+      "after_rho_weight": 16,
+      "after_chi_weight": 33,
+      "after_iota_weight": 120
+    },
+    {
+      "round": 2,
+      "after_theta_weight": 744,
+      "after_pi_weight": 744,
+      "after_rho_weight": 744,
+      "after_chi_weight": 786,
+      "after_iota_weight": 793
+    },
+    {
+      "round": 3,
+      "after_theta_weight": 792,
+      "after_pi_weight": 792,
+      "after_rho_weight": 792,
+      "after_chi_weight": 792,
+      "after_iota_weight": 796
+    }
+  ]
+}
