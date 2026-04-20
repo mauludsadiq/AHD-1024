@@ -35,6 +35,19 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "trace-diff-pair" => {
+            let rounds = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(3);
+            let bit1 = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+            let bit2 = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1);
+            let mut delta = blank_state();
+            delta[(bit1 / 64) % 5][(bit1 / 320) % 5] ^= 1u64 << (bit1 % 64);
+            delta[(bit2 / 64) % 5][(bit2 / 320) % 5] ^= 1u64 << (bit2 % 64);
+            let report = trace_difference(delta, rounds, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("trace_diff_pair_r{}_b{}_{}.json", rounds, bit1, bit2));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "vectors" => {
             let out = json!({
                 "constants": {
