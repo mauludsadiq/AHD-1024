@@ -447,16 +447,52 @@ Interpretation:
 - This does not prove absence of deeper boomerang structure, but it removes the most obvious reduced-round cycle signal at the tested depth.
 
 
+### Phase 3 Result: SAT-Like Reduced-Round Structure Proxy
+
+A reduced-round structure proxy has now been added and tested at two depths.
+
+Measured runs:
+- `results/sat_like_samples50000_msg96_seed1234.json`
+- `results/sat_like_samples200000_msg96_seed1234.json`
+
+Key results (`200000` samples):
+
+- Round `1`:
+  - `unique_output_differences = 199707 / 200000`
+  - `max_repeated_output_difference_count = 278`
+  - `avg_changed_fraction = 0.05767474609375`
+  - clearly shallow and structured
+
+- Round `2`:
+  - `unique_output_differences = 200000 / 200000`
+  - `max_repeated_output_difference_count = 1`
+  - `avg_changed_fraction = 0.48967802734375`
+  - `min_changed_fraction = 0.05859375`
+  - transitional, but no repeated-difference reuse observed
+
+- Rounds `3–6`:
+  - `unique_output_differences = 200000 / 200000`
+  - `max_repeated_output_difference_count = 1`
+  - `avg_changed_fraction ≈ 0.5`
+  - structurally clean under this proxy
+
+Interpretation:
+- Round `1` remains the only obviously weak regime.
+- Round `2` is the last visibly transitional regime.
+- Round `3` and beyond are clean at current resolution.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- SAT/MILP-style reduced-round structure search
 - Full 24-round avalanche expansion
 - Additional higher-order differential orders as needed
+- Stronger exact reduced-round constraint modeling if needed
 
 Decision:
-- Next strongest move: **SAT/MILP-style reduced-round structure search**
-- Reason: avalanche, linear, higher-order, lane-activity, and short-cycle/quartet connectivity screens are all currently favorable.
+- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens.
+- Next strongest move: **full 24-round avalanche expansion**
+- After that: only push into stronger exact reduced-round constraint modeling if a new signal appears.
 
 ---
 
