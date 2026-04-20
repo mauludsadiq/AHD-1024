@@ -33,8 +33,8 @@ Each round is:
 Θ → Ρ → Π → Χ* → Ι
 
 * **Θ (Theta)**: column parity diffusion with multi-rotation coupling
-* **Π (Pi)**: bijective lane permutation
 * **Ρ (Rho)**: lane-wise rotations from a fixed offset table
+* **Π (Pi)**: bijective lane permutation
 * **Χ (Chi\*)**: extended nonlinear row function
 * **Ι (Iota)**: asymmetric injection of three round constants
 
@@ -216,7 +216,7 @@ AHD-1024 has reached a critical reproducibility milestone.
 - Padding rule (0x01 || 0x00* || 0x80): ✅ Frozen
 
 See:
-- spec/endianness-padding-normalization.md
+- spec/AHD-1024-Specification-v1.0-pre.md
 
 ---
 
