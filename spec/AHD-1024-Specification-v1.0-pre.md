@@ -77,6 +77,21 @@ i = x + 5*y
 
 Lane 0 is A[0][0]; lane 24 is A[4][4]. The 25 lanes are ordered by increasing index (i = 0 to 24).
 
+The rate occupies lanes 0 to 15 (16 lanes x 8 bytes = 128 bytes).
+The capacity occupies lanes 16 to 24.
+The rate lanes in index order are:
+
+| Lane i | A[x][y]  | Lane i | A[x][y]  |
+|--------|----------|--------|----------|
+|  0     | A[0][0]  |  8     | A[3][1]  |
+|  1     | A[1][0]  |  9     | A[4][1]  |
+|  2     | A[2][0]  | 10     | A[0][2]  |
+|  3     | A[3][0]  | 11     | A[1][2]  |
+|  4     | A[4][0]  | 12     | A[2][2]  |
+|  5     | A[0][1]  | 13     | A[3][2]  |
+|  6     | A[1][1]  | 14     | A[4][2]  |
+|  7     | A[2][1]  | 15     | A[0][3]  |
+
 ### 4.3  Byte-to-State Mapping (Absorb)
 
 Given a 128-byte rate block B, the first 128 bytes of the state are updated by XOR:
@@ -85,13 +100,41 @@ Given a 128-byte rate block B, the first 128 bytes of the state are updated by X
 For i = 0 to 127:  state_byte(i)  ^=  B[i]
 ```
 
-where `state_byte(i)` denotes byte `i mod 8` of lane `floor(i / 8)`, serialised as a little-endian 64-bit integer.
+where state_byte(i) denotes byte (i mod 8) of lane floor(i / 8),
+with each lane serialised as a little-endian 64-bit integer.
 
-Bytes beyond index 127 (the capacity lanes) are never modified by absorption.
+Equivalently: input byte B[j] is XORed into byte (j mod 8) of lane (j / 8),
+where byte 0 of a lane is its least-significant byte.
+
+Bytes beyond index 127 (capacity lanes 16-24) are never modified by absorption.
+
+**Worked example:** Given B[0]=0x01, B[1]=0x02, ..., B[7]=0x08,
+B[8]=0x09, ..., B[15]=0x10, all other bytes zero:
+
+- B[0..7] map to lane 0 = A[0][0]:
+  A[0][0] ^= 0x0807060504030201  (B[0] is the least-significant byte)
+- B[8..15] map to lane 1 = A[1][0]:
+  A[1][0] ^= 0x100f0e0d0c0b0a09
 
 ### 4.4  State-to-Byte Mapping (Squeeze)
 
-Serialise the first r/8 lanes in index order, each as a little-endian 64-bit integer, and concatenate. For hash mode, extract lanes 0-3 (32 bytes).
+To extract output bytes, serialise lanes in index order (i = 0, 1, 2, ...),
+each as a little-endian 64-bit integer, and concatenate:
+
+```
+output_bytes = LE64(lane_0) || LE64(lane_1) || ... || LE64(lane_{n-1})
+```
+
+where lane_i corresponds to A[x][y] with x = i mod 5, y = floor(i / 5).
+
+For hash mode (32 bytes), extract lanes 0-3:
+
+```
+LE64(A[0][0]) || LE64(A[1][0]) || LE64(A[2][0]) || LE64(A[3][0])
+```
+
+For XOF mode, continue extracting lanes in index order across permutation
+calls until L bytes have been produced.
 
 ### 4.5  Initial State
 
