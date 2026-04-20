@@ -71,13 +71,13 @@ fn main() {
         "hash" => {
             let input = args.get(2).map(|s| s.as_bytes().to_vec()).unwrap_or_default();
             let digest = aha_hash(&input, Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT);
-            println!("{}", hex_of(&digest));
+            println!("AHD-1024-256:{}", hex_of(&digest));
         }
         "xof" => {
             let input = args.get(2).map(|s| s.as_bytes().to_vec()).unwrap_or_default();
             let out_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(64);
             let digest = aha_hash(&input, Domain::Xof, out_len, ROUNDS, &constants, ChiVariant::Star, &ROT);
-            println!("{}", hex_of(&digest));
+            println!("AHD-1024-XOF:{}", hex_of(&digest));
         }
         "hash-hex" => {
             let hex_input = args.get(2).map(|s| s.as_str()).unwrap_or("");
@@ -85,7 +85,7 @@ fn main() {
                 .map(|i| u8::from_str_radix(&hex_input[i..i+2], 16).unwrap_or(0))
                 .collect::<Vec<u8>>();
             let digest = aha_hash(&input, Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT);
-            println!("{}", hex_of(&digest));
+            println!("AHD-1024-256:{}", hex_of(&digest));
         }
         "vectors" => {
             let out = json!({
