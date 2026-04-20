@@ -68,6 +68,25 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "hash" => {
+            let input = args.get(2).map(|s| s.as_bytes().to_vec()).unwrap_or_default();
+            let digest = aha_hash(&input, Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT);
+            println!("{}", hex_of(&digest));
+        }
+        "xof" => {
+            let input = args.get(2).map(|s| s.as_bytes().to_vec()).unwrap_or_default();
+            let out_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(64);
+            let digest = aha_hash(&input, Domain::Xof, out_len, ROUNDS, &constants, ChiVariant::Star, &ROT);
+            println!("{}", hex_of(&digest));
+        }
+        "hash-hex" => {
+            let hex_input = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            let input = (0..hex_input.len()).step_by(2)
+                .map(|i| u8::from_str_radix(&hex_input[i..i+2], 16).unwrap_or(0))
+                .collect::<Vec<u8>>();
+            let digest = aha_hash(&input, Domain::Hash, 32, ROUNDS, &constants, ChiVariant::Star, &ROT);
+            println!("{}", hex_of(&digest));
+        }
         "vectors" => {
             let out = json!({
                 "constants": {
