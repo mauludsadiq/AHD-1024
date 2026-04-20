@@ -518,17 +518,70 @@ Interpretation:
 - Rounds `3–24` are avalanche-stable at current resolution.
 
 
+### Phase 3 Result: Internal Differential Trace and Structured Pair Sweep
+
+Internal round-by-round differential tracing has now been added.
+
+Measured single-bit traces:
+- `results/trace_diff_r3_bit0.json`
+- `results/trace_diff_r3_bit511.json`
+
+Measured structured pair traces:
+- `results/trace_diff_pair_r3_b0_1.json`
+- `results/trace_diff_pair_r3_b0_63.json`
+- `results/trace_diff_pair_r3_b0_64.json`
+- `results/trace_diff_pair_r3_b0_320.json`
+- `results/trace_diff_pair_r3_b0_511.json`
+
+Key findings:
+
+#### Single-bit traces
+- Bit `0`:
+  - round `1` after iota: `120`
+  - round `2` after iota: `793`
+  - round `3` after iota: `796`
+- Bit `511`:
+  - round `1` after iota: `117`
+  - round `2` after iota: `761`
+  - round `3` after iota: `846`
+
+#### Structured pair traces
+- `(0,1)`:
+  - round `2` after iota: `822`
+  - round `3` after iota: `786`
+- `(0,63)`:
+  - round `2` after iota: `767`
+  - round `3` after iota: `812`
+- `(0,64)`:
+  - round `2` after iota: `803`
+  - round `3` after iota: `811`
+- `(0,320)`:
+  - round `1` stays sparse through the core:
+    - `2 -> 2 -> 2 -> 4`
+  - but round `2` after iota still reaches `748`
+  - round `3` after iota reaches `791`
+- `(0,511)`:
+  - round `2` after iota: `805`
+  - round `3` after iota: `811`
+
+Interpretation:
+- Round `1` can admit sparse structured configurations.
+- Round `2` destroys them.
+- Round `3` is already in the near-saturated regime.
+- No tested structured 2-bit input produces a sustained low-weight trail beyond round `1`.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- Additional higher-order differential orders as needed
-- Stronger exact reduced-round constraint modeling if needed
+- Additional structured trace sweeps if needed
 - External review / independent cryptanalytic replication
+- Stronger exact reduced-round constraint modeling only if a new signal appears
 
 Decision:
-- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens.
-- The 24-round avalanche expansion is now complete.
-- Next strongest move: only push into stronger exact reduced-round constraint modeling if a new signal appears, or hand the candidate to external review.
+- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens and internal traces.
+- Structured single-bit and 2-bit internal traces agree with the external avalanche, higher-order, and structure-proxy results.
+- Next strongest move: external review / independent cryptanalytic replication.
 
 ---
 
