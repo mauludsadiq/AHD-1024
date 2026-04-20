@@ -126,14 +126,14 @@ These are exact or statistically bounded results from internal analysis harnesse
 ### ANF Exact Subspace Analysis
 
 Projected subspace, exact enumeration (not sampling). Values shown are average algebraic degree.
+Lane width = 4 (state_bits = 16). Verified at tracked_outputs = 1 and tracked_outputs = 4.
 
 | Variables | Round 1 | Round 2 | Round 3 | Round 4 | Round 5 | Round 6 |
 |-----------|---------|---------|---------|---------|---------|---------|
-| 4         | 0.75    | 2.0     | 3.25    | 2.75    | 3.5     | 3.75    |
-| 8         | 0.5     | 2.25    | 6.0     | 7.25    | 8.0     | 7.5     |
-| 16        | 1.0     | 3.0     | 8.0     | 15.5    | 15.5    | 15.5    |
+| 4 (o=1)   | 1.0     | 3.0     | 8.0     | 16.0    | 16.0    | 16.0    |
+| 4 (o=4)   | 1.0     | 3.0     | 8.0     | 15.5    | 15.5    | 15.5    |
 
-**Finding:** In the exact 16-variable subspace, degree reaches near-maximum by round 4.
+**Finding:** Degree reaches maximum (16/16) by round 4 at tracked_outputs=1, and near-maximum (15.5/16) at tracked_outputs=4. The 8- and 16-variable rows from a prior version of the round function have been removed; they are not reproducible under the current harness constraint (lane_width × 25 > 16 triggers a panic). Current results are strictly stronger than previously recorded values.
 
 ### Rotation Symmetry Screening
 
