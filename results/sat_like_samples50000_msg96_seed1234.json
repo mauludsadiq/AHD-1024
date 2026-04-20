@@ -1,0 +1,59 @@
+{
+  "samples": 50000,
+  "rounds": {
+    "5": {
+      "rounds": 5,
+      "samples": 50000,
+      "unique_output_differences": 50000,
+      "max_repeated_output_difference_count": 1,
+      "avg_changed_fraction": 0.49979734375,
+      "min_changed_fraction": 0.37109375,
+      "max_changed_fraction": 0.62890625
+    },
+    "6": {
+      "rounds": 6,
+      "samples": 50000,
+      "unique_output_differences": 50000,
+      "max_repeated_output_difference_count": 1,
+      "avg_changed_fraction": 0.500081640625,
+      "min_changed_fraction": 0.37890625,
+      "max_changed_fraction": 0.625
+    },
+    "3": {
+      "rounds": 3,
+      "samples": 50000,
+      "unique_output_differences": 50000,
+      "max_repeated_output_difference_count": 1,
+      "avg_changed_fraction": 0.4999678125,
+      "min_changed_fraction": 0.37109375,
+      "max_changed_fraction": 0.63671875
+    },
+    "1": {
+      "rounds": 1,
+      "samples": 50000,
+      "unique_output_differences": 49916,
+      "max_repeated_output_difference_count": 83,
+      "avg_changed_fraction": 0.0577159375,
+      "min_changed_fraction": 0.0,
+      "max_changed_fraction": 0.1015625
+    },
+    "2": {
+      "rounds": 2,
+      "samples": 50000,
+      "unique_output_differences": 50000,
+      "max_repeated_output_difference_count": 1,
+      "avg_changed_fraction": 0.490098671875,
+      "min_changed_fraction": 0.0625,
+      "max_changed_fraction": 0.6171875
+    },
+    "4": {
+      "rounds": 4,
+      "samples": 50000,
+      "unique_output_differences": 50000,
+      "max_repeated_output_difference_count": 1,
+      "avg_changed_fraction": 0.500085859375,
+      "min_changed_fraction": 0.37109375,
+      "max_changed_fraction": 0.640625
+    }
+  }
+}

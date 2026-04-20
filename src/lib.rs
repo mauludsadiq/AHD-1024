@@ -1326,6 +1326,81 @@ pub fn rotation_test(
     }
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SatLikeRoundStats {
+    pub rounds: usize,
+    pub samples: usize,
+    pub unique_output_differences: usize,
+    pub max_repeated_output_difference_count: usize,
+    pub avg_changed_fraction: f64,
+    pub min_changed_fraction: f64,
+    pub max_changed_fraction: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SatLikeReport {
+    pub samples: usize,
+    pub rounds: HashMap<usize, SatLikeRoundStats>,
+}
+
+pub fn sat_like_reduced_round_structure(
+    rounds_list: &[usize],
+    samples: usize,
+    msg_len: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> SatLikeReport {
+    let mut rng = StdRng::seed_from_u64(seed);
+    let mut results = HashMap::new();
+
+    for &r in rounds_list {
+        let mut diffs: HashMap<Vec<u8>, usize> = HashMap::new();
+        let mut changed = Vec::with_capacity(samples);
+
+        for _ in 0..samples {
+            let mut m = vec![0u8; msg_len];
+            rng.fill(&mut m[..]);
+            let mut m2 = m.clone();
+
+            let mut positions = HashSet::new();
+            while positions.len() < 2 {
+                positions.insert(rng.gen_range(0..(msg_len * 8)));
+            }
+            for pos in positions {
+                m2[pos / 8] ^= 1u8 << (pos % 8);
+            }
+
+            let h1 = aha_hash(&m, Domain::Hash, 32, r, constants, chi, rot);
+            let h2 = aha_hash(&m2, Domain::Hash, 32, r, constants, chi, rot);
+            let d = xor_bytes(&h1, &h2);
+
+            *diffs.entry(d.clone()).or_insert(0) += 1;
+            changed.push(popcount_bytes(&d) as f64 / 256.0);
+        }
+
+        let mut counts: Vec<usize> = diffs.values().copied().collect();
+        counts.sort_unstable_by(|a, b| b.cmp(a));
+
+        let min_changed_fraction = changed.iter().copied().fold(f64::INFINITY, f64::min);
+        let max_changed_fraction = changed.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+
+        results.insert(r, SatLikeRoundStats {
+            rounds: r,
+            samples,
+            unique_output_differences: diffs.len(),
+            max_repeated_output_difference_count: counts.first().copied().unwrap_or(0),
+            avg_changed_fraction: changed.iter().sum::<f64>() / changed.len() as f64,
+            min_changed_fraction,
+            max_changed_fraction,
+        });
+    }
+
+    SatLikeReport { samples, rounds: results }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
