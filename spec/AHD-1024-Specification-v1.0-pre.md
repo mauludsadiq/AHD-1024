@@ -647,24 +647,76 @@ The following are normative known-answer vectors. All conforming implementations
 
 ## Appendix A  Security Claims (Informative)
 
-### A.1  Construction-Level Claims
+This appendix is informative. It does not form part of the normative specification.
 
-AHD-1024 uses a sponge construction. Under the ideal-permutation assumption and standard sponge analysis, generic attacks are bounded by the capacity. With c = 576 bits, the generic collision bound is approximately 2^288 and the generic preimage bound is approximately 2^256 for the 256-bit hash output.
+### A.1  Generic Security Bounds
 
-The construction does not exhibit Merkle-Damgard length extension.
+AHD-1024 uses a sponge construction over a 1600-bit permutation with
+rate r = 1024 bits and capacity c = 576 bits.
 
-### A.2  Empirical Evidence
+Under the assumption that the permutation behaves as an ideal random
+permutation, standard sponge indifferentiability analysis gives the
+following generic bounds:
 
-The following results support confidence in the permutation. They do not constitute proofs of security.
+| Property | Generic bound |
+|----------|--------------|
+| Collision resistance (hash mode) | 2^(c/2) = 2^288 operations |
+| Preimage resistance (hash mode, 256-bit output) | 2^256 operations |
+| Second preimage resistance | 2^256 operations |
+| Length extension | Not applicable -- sponge construction does not exhibit Merkle-Damgard length extension |
 
-- **Differential screens:** no low-weight trail survives beyond round 2 in any tested probe (200,000 pairs, multiple seeds).
-- **Avalanche:** rounds 3-24 exhibit mean flip probability ~0.5000, max deviation < 0.004 at 320,000 samples.
-- **ANF degree:** reaches maximum (16/16) by round 4 in the 4-variable exact subspace (lane_width=4, tracked_outputs=1).
-- **Rotation symmetry:** zero nontrivial survivals across 200,000 samples.
-- **Fixed points and short cycles:** none found across 200,000 samples through 6 rounds.
-- **Beam search (2- and 3-bit seeds):** best round-3 trail weight ~738-747 bits.
+These bounds hold generically against any adversary that treats the
+permutation as a black box. They do not account for structural
+weaknesses in the permutation itself, which is addressed separately
+in Section A.2.
 
-These results support confidence in the permutation design. They do not prove collision or preimage resistance of the hash construction.
+> **NOTE** The 256-bit output of AHD-1024-256 limits collision resistance
+> to 2^128 in practice (birthday bound on output length), which is the
+> binding constraint rather than the capacity bound of 2^288.
+
+### A.2  Permutation Security Evidence
+
+The following empirical results were obtained from internal analysis
+harnesses against the AHD-1024 permutation. They support confidence
+in the permutation design. They are not proofs of security and must
+not be interpreted as such.
+
+| Probe | Rounds tested | Result |
+|-------|--------------|--------|
+| Low-weight differential search | 1-6 | No trail survives beyond round 2 (200,000 pairs, seeds 7, 1234, 5678) |
+| Avalanche (single-bit flip) | 1-24 | Mean flip probability ~0.5000, max deviation < 0.004 at 320,000 samples |
+| ANF algebraic degree | 1-6 | Maximum degree (16/16) reached by round 4 (lane_width=4, tracked_outputs=1) |
+| Rotation symmetry screening | 1-6 | Zero nontrivial survivals at 200,000 samples |
+| Fixed-point search | 1-6 | Zero fixed points at 200,000 samples |
+| Short cycle search (length 2, 3, 4) | 1-6 | Zero cycles at 200,000 samples per length |
+| Beam search (2- and 3-bit seeds) | 3 | Best round-3 trail weight 738-747 bits (near-ideal) |
+| Higher-order differentials (orders 2, 3, 4) | 1-6 | No low-weight residual at round 3+ |
+| Linear/correlation matrix | 1-6 | Mean bias ~0.003, consistent with sampling noise at 16,384 samples/bit |
+
+**Interpretation:** Round 1 is shallow. Round 2 is transitional. Round 3
+is the first statistically ideal round under all tested metrics. Rounds
+3-24 are stable under all current screens.
+
+### A.3  Scope of Claims
+
+The following claims are made:
+
+1. **Construction-level (formal):** Under the ideal-permutation assumption,
+   AHD-1024-256 provides collision resistance up to 2^128 work and preimage
+   resistance up to 2^256 work, per standard sponge bounds.
+
+2. **Structural (formal):** The sponge construction does not exhibit
+   Merkle-Damgard length extension.
+
+3. **Permutation (empirical):** No structural weakness has been found in
+   the permutation under any tested probe at current resolution.
+
+The following claims are NOT made:
+
+- That the permutation is proven to be a pseudorandom permutation.
+- That the empirical results above constitute a proof of any security property.
+- That the construction is secure against adversaries with structural
+  knowledge of the permutation beyond what the above probes have tested.
 
 ---
 
