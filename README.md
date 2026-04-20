@@ -85,6 +85,8 @@ cargo run --release -- avalanche [n_msgs] [flips_per_msg] [msg_len] [seed]
 
 cargo run --release -- anf-small [lane_width] [rounds] [tracked_outputs]
 
+**Constraint:** `lane_width × 25 ≤ 16` (exact truth-table limit). Valid: `lane_width = 4`. Any larger value panics. Useful calls: `anf-small 4 6 1` and `anf-small 4 6 4`.
+
 ---
 
 ### Rotation symmetry screening
@@ -113,9 +115,10 @@ cargo run --release -- cube [samples] [msg_len] [cube_bits] [seed]
 
 ## Current Internal Cryptanalytic Picture
 
-Rounds 1–3 show shallow structure under multiple probes.  
-Round 4 is the first point where current attacks stop exposing cheap structure.  
-Rounds 5–6 remain stable under current harness.
+Round 1 is shallow across all probes.  
+Round 2 is the last visibly transitional regime.  
+Round 3 is the first statistically ideal round under differential and avalanche metrics.  
+Rounds 3–24 are stable under all current screens.
 
 ---
 
@@ -239,13 +242,11 @@ C verification:
 ### What This Means
 
 AHD-1024 is now:
-- **Unambiguously specified**
-- **Independently implementable**
-- **Deterministic across implementations**
+- **Deterministic across three independent implementations**
 - **Fully reproducible from spec artifacts**
+- **Internally consistent with no stale test vectors**
 
-This satisfies the core requirement for a cryptographic candidate:
-  Three independent implementations derived from the specification produce identical outputs.
+Three independent implementations (Rust, Python, C) produce identical outputs for all verified test vectors. A formal normative specification document is required before the design can be considered unambiguously specified for external implementers.
 
 ---
 
@@ -321,7 +322,7 @@ Artifacts:
 
 ### Phase 3 Result: Higher-Order Differential Screening
 
-Higher-order differential scans have now been added for orders `2` and `3`.
+Higher-order differential scans have now been completed for orders `2`, `3`, and `4`.
 
 Measured runs:
 - `order = 2`, `50000` pairs, `msg_len = 96`
@@ -663,14 +664,14 @@ Current Phase 4 reading:
 
 ### Next Phase
 
-Phase 3: Extended Empirical Cryptanalysis
-- External review / independent cryptanalytic replication
-- Optional 4-bit beam search only if a stronger constructive challenge is desired
-- Stronger exact reduced-round constraint modeling only if a new signal appears
+Phase 3 (empirical cryptanalysis) and Phase 4 (component tournaments) are complete.
 
-Decision:
-- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens, internal traces, and beam search.
-- Next strongest move: external review / independent cryptanalytic replication.
+Current best reading:
+- Round `2` is the last transitional regime across all probes.
+- Round `3+` is clean under differential, avalanche, ANF, rotation, fixed-point, cycle, SAT-proxy, beam search, and higher-order differential screens.
+- `Χ*` is the selected nonlinear layer. Current rotation table has no identified replacement.
+
+Next step: external review. Give the specification document to an implementer with no repo access. Require them to produce a conforming implementation from the document alone and verify against the official test vectors. Freeze when that succeeds.
 
 ---
 
