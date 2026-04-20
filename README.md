@@ -571,16 +571,45 @@ Interpretation:
 - No tested structured 2-bit input produces a sustained low-weight trail beyond round `1`.
 
 
+### Phase 3 Result: Beam Search for Low-Weight Reduced-Round Trails
+
+A deterministic beam search over low-weight input differences has now been added.
+
+Measured runs:
+- `results/beam_trails_r3_beam32_w2.json`
+- `results/beam_trails_r3_beam32_w3.json`
+
+Key findings:
+
+#### 2-bit seeds
+- Best round-3 frontier sits around `738–744`
+- Representative candidate:
+  - `seed_bits = [65, 249]`
+  - `round_weights = [132, 802, 738]`
+
+#### 3-bit seeds
+- Best round-3 frontier sits around `740–747`
+- Representative candidate:
+  - `seed_bits = [167, 274, 478]`
+  - `round_weights = [174, 770, 742]`
+
+Interpretation:
+- Beam search over `2`-bit and `3`-bit seeds did not discover any anomalously low round-3 trail.
+- Increasing input weight from `2` to `3` bits did not improve the best round-3 weight frontier.
+- The constructive search agrees with the statistical screens and internal traces:
+  - round `2` is the last transitional regime
+  - round `3+` remains in the high-weight / near-saturated regime
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
-- Additional structured trace sweeps if needed
 - External review / independent cryptanalytic replication
+- Optional 4-bit beam search only if a stronger constructive challenge is desired
 - Stronger exact reduced-round constraint modeling only if a new signal appears
 
 Decision:
-- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens and internal traces.
-- Structured single-bit and 2-bit internal traces agree with the external avalanche, higher-order, and structure-proxy results.
+- Current best reading: round `2` is the last transitional regime; round `3+` is clean under all current screens, internal traces, and beam search.
 - Next strongest move: external review / independent cryptanalytic replication.
 
 ---
