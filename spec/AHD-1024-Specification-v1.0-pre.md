@@ -680,4 +680,19 @@ This document is the sole normative reference. The specification remains valid a
 
 ---
 
+## Appendix C  Version History (Informative)
+
+| Version | Date | Summary of changes |
+|---------|------|--------------------|
+| v0.1    | 2026-04-18 | Initial working design. Round function, constants, and padding defined. |
+| v0.2    | 2026-04-19 | Endianness and padding normalization. Canonical byte-to-lane mapping frozen. Domain separation defined. Three independent implementations (Rust, Python, C) verified bit-identical on all test vectors. Designated AHA-D-256 v0.2. |
+| v1.0-pre | 2026-04-20 | Specification document created. Section 4 state mapping tightened with lane table and worked example. Section 5 padding algorithm formalized with edge case table and examples. Section 11 test vectors expanded to 16 hash vectors and XOF vectors at L=0,1,32,64,128,129. Section 2 glossary added. Top-level pseudocode added. ANF results corrected to reflect current implementation. README staleness audit completed. |
+
+> **NOTE** Any change to padding, endianness, constants, or round structure
+> requires a new major version identifier. The algorithm identifiers
+> AHD-1024-256 and AHD-1024-XOF are bound to the normative content of
+> the version in which they are defined.
+
+---
+
 *End of AHD-1024 Specification v1.0-pre*
