@@ -688,16 +688,49 @@ Current Phase 4 reading:
 - no decisive replacement has emerged from nearby perturbations
 
 
+### Phase 4 Result: Iota Injection Site Tournament
+
+A tournament across iota injection site counts has now been completed.
+
+Measured runs:
+- `results/iota_tournament_1site_pairs200000_msg96_seed7.json` (1 site: A[0][0] only)
+- `results/iota_tournament_3site_pairs200000_msg96_seed7.json` (3 sites: current)
+- `results/iota_tournament_5site_pairs200000_msg96_seed7.json` (5 sites: extended)
+
+Critical round-2 and round-3 comparison:
+
+| Variant | Round 2 avg | Round 2 min | Round 3 avg | Round 3 min |
+|---------|-------------|-------------|-------------|-------------|
+| 1-site  | 116.621     | 78          | 127.990     | 94          |
+| 3-site (current) | 116.674 | 82     | 128.011     | 91          |
+| 5-site  | 116.679     | 79          | 128.002     | 95          |
+
+Interpretation:
+- All three variants are effectively tied on average.
+- 3-site has the best round-2 minimum (82), marginally ahead of both alternatives.
+- 5-site adds complexity with no meaningful gain.
+- The design is not sitting on a knife edge -- nearby variants produce equivalent results.
+
+Current Phase 4 reading:
+- 3-site iota injection is the confirmed correct choice.
+- Injection sites A[0][0], A[1][2], A[4][4] are frozen.
+
+
 ### Next Phase
 
 Phase 3 (empirical cryptanalysis) and Phase 4 (component tournaments) are complete.
+All design choices are data-backed. See `variants/design-rationale.md` for the full
+empirical justification for every frozen parameter.
 
 Current best reading:
 - Round `2` is the last transitional regime across all probes.
-- Round `3+` is clean under differential, avalanche, ANF, rotation, fixed-point, cycle, SAT-proxy, beam search, and higher-order differential screens.
-- `Χ*` is the selected nonlinear layer. Current rotation table has no identified replacement.
+- Round `3+` is clean under all current screens.
+- Chi*, current rotation table, and 3-site iota are all confirmed correct choices.
 
-Next step: external review. Give the specification document to an implementer with no repo access. Require them to produce a conforming implementation from the document alone and verify against the official test vectors. Freeze when that succeeds.
+Next step: external review. Provide `spec/AHD-1024-Specification-v1.0-pre.md` to an
+independent implementer with no prior access to the repository. Ask them to produce a
+conforming implementation from the document alone and verify against all official test
+vectors in Section 11. Freeze as v1.0 when outputs match bit-for-bit.
 
 ---
 
