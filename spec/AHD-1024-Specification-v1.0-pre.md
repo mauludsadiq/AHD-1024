@@ -483,6 +483,7 @@ A conforming implementation of AHD-1024-256 or AHD-1024-XOF:
 - MUST use the exact round function defined in Section 7.
 - MUST pass all official test vectors defined in Section 11.
 - MUST NOT reject any valid input (a finite byte string of length >= 0).
+- MUST support messages of at least 2^32 - 1 bytes. Implementations with lower practical limits must document those limits explicitly.
 
 ### 10.2  Permissions
 
