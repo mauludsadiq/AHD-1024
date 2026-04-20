@@ -235,6 +235,106 @@ pub fn trace_difference(
 }
 
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrailNode {
+    pub seed_bits: Vec<usize>,
+    pub final_state: State,
+    pub round_weights: Vec<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BeamTrailReport {
+    pub rounds: usize,
+    pub beam_width: usize,
+    pub max_input_bits: usize,
+    pub nodes: Vec<TrailNode>,
+}
+
+fn state_with_bits(bits: &[usize]) -> State {
+    let mut s = blank_state();
+    for &bit in bits {
+        let lane = bit / 64;
+        let x = lane % 5;
+        let y = (bit / 320) % 5;
+        s[x][y] ^= 1u64 << (bit % 64);
+    }
+    s
+}
+
+fn trace_state_weights(
+    mut s: State,
+    rounds: usize,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> Vec<u32> {
+    let mut out = Vec::with_capacity(rounds);
+    for t in 0..rounds {
+        s = theta(&s);
+        s = pi_stage(&s);
+        s = rho(&s, rot);
+        s = match chi {
+            ChiVariant::Star => chi_star(&s),
+            ChiVariant::Baseline => chi_baseline(&s),
+        };
+        s = iota(&s, t, constants);
+        out.push(popcount_state(&s));
+    }
+    out
+}
+
+pub fn search_low_weight_trails(
+    rounds: usize,
+    beam_width: usize,
+    max_input_bits: usize,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> BeamTrailReport {
+    let candidate_bits: Vec<usize> = (0..640).collect();
+    let mut frontier: Vec<TrailNode> = Vec::new();
+
+    for &bit in &candidate_bits {
+        let seed_bits = vec![bit];
+        let final_state = state_with_bits(&seed_bits);
+        let round_weights = trace_state_weights(final_state, rounds, constants, chi, rot);
+        frontier.push(TrailNode { seed_bits, final_state, round_weights });
+    }
+
+    frontier.sort_by_key(|n| *n.round_weights.last().unwrap_or(&u32::MAX));
+    frontier.truncate(beam_width);
+
+    for target_w in 2..=max_input_bits {
+        let mut next: Vec<TrailNode> = Vec::new();
+
+        for node in &frontier {
+            let start = node.seed_bits.last().copied().unwrap_or(0) + 1;
+            for &bit in candidate_bits.iter().skip(start) {
+                let mut seed_bits = node.seed_bits.clone();
+                seed_bits.push(bit);
+                if seed_bits.len() != target_w {
+                    continue;
+                }
+                let final_state = state_with_bits(&seed_bits);
+                let round_weights = trace_state_weights(final_state, rounds, constants, chi, rot);
+                next.push(TrailNode { seed_bits, final_state, round_weights });
+            }
+        }
+
+        next.sort_by_key(|n| *n.round_weights.last().unwrap_or(&u32::MAX));
+        next.truncate(beam_width);
+        frontier = next;
+    }
+
+    BeamTrailReport {
+        rounds,
+        beam_width,
+        max_input_bits,
+        nodes: frontier,
+    }
+}
+
+
 pub fn permute(mut s: State, rounds: usize, constants: &Constants, chi: ChiVariant, rot: &[[u32; 5]; 5]) -> State {
     for t in 0..rounds {
         s = theta(&s);

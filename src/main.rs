@@ -35,6 +35,16 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "beam-trails" => {
+            let rounds = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(3);
+            let beam_width = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(32);
+            let max_input_bits = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(2);
+            let report = search_low_weight_trails(rounds, beam_width, max_input_bits, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("beam_trails_r{}_beam{}_w{}.json", rounds, beam_width, max_input_bits));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "trace-diff-pair" => {
             let rounds = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(3);
             let bit1 = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
