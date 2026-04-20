@@ -1365,6 +1365,16 @@ pub fn shifted_rot() -> [[u32; 5]; 5] {
     out
 }
 
+pub fn shifted_rot_b() -> [[u32; 5]; 5] {
+    let mut out = [[0u32; 5]; 5];
+    for x in 0..5 {
+        for y in 0..5 {
+            out[x][y] = (ROT[x][y] + 7) % 64;
+        }
+    }
+    out
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RotationReport {
     pub tested_rotations: usize,

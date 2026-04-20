@@ -213,6 +213,28 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "low-weight-shifted" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let rot = shifted_rot();
+            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, ChiVariant::Star, &rot);
+            let path = results_dir().join(format!("low_weight_shifted_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
+        "low-weight-shifted-b" => {
+            let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
+            let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
+            let rot = shifted_rot_b();
+            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, ChiVariant::Star, &rot);
+            let path = results_dir().join(format!("low_weight_shifted_b_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "low-weight-baseline" => {
             let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
             let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
