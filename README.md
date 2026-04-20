@@ -30,7 +30,7 @@ The aim is not to claim security by assertion. The aim is to define a candidate,
 
 Each round is:
 
-Θ → Π → Ρ → Χ → Ι
+Θ → Ρ → Π → Χ* → Ι
 
 * **Θ (Theta)**: column parity diffusion with multi-rotation coupling
 * **Π (Pi)**: bijective lane permutation
@@ -78,6 +78,8 @@ Output format:
     AHD-1024-256:<32-byte digest hex>
     AHD-1024-XOF:<L-byte output hex>
 
+
+> **NOTE** The prefixed output format (AHD-1024-256:, AHD-1024-XOF:) is for the CLI tool only. The core library returns raw bytes.
 ---
 
 ## Basic Verification
@@ -238,13 +240,14 @@ All three implementations produce **bit-identical outputs** for:
 ### Verified Test Coverage
 
 The following inputs are verified across all implementations:
-- "" (empty)
-- "a"
-- "abc"
-- "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" (52 bytes)
-- 0x00 × 126 bytes (boundary case)
-- 0x00 × 128 bytes (full block)
-- 0xff × 128 bytes (max entropy block)
+- empty, "a", "abc", a-z A-Z (52 bytes)
+- 0x00 x 1, 126, 127, 128, 129, 254, 255, 256 bytes (all padding boundary cases)
+- 0xff x 128 bytes
+- 0x00 x 383, 384 bytes (multi-block boundaries)
+- counting bytes 0x00-0xff (256 bytes)
+
+Expanded boundary and edge-case vectors are in Section 11 of the specification
+and in spec/test-vectors/hash-and-xof-prefreeze.json.
 
 Artifacts:
 - spec/test-vectors/hash-and-xof-prefreeze.json
@@ -262,12 +265,14 @@ C verification:
 
 ### What This Means
 
+See the full normative specification: [spec/AHD-1024-Specification-v1.0-pre.md](spec/AHD-1024-Specification-v1.0-pre.md)
+
 AHD-1024 is now:
 - **Deterministic across three independent implementations**
 - **Fully reproducible from spec artifacts**
 - **Internally consistent with no stale test vectors**
 
-Three independent implementations (Rust, Python, C) produce identical outputs for all verified test vectors. A formal normative specification document is required before the design can be considered unambiguously specified for external implementers.
+Three independent implementations (Rust, Python, C) produce identical outputs for all verified test vectors in the specification. The normative specification document is at spec/AHD-1024-Specification-v1.0-pre.md. External review from the document alone is the next milestone.
 
 ---
 
