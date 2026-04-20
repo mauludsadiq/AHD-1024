@@ -588,7 +588,37 @@ A conforming implementation:
 
 ## 11  Official Test Vectors
 
-The following are normative known-answer vectors. All conforming implementations must produce identical outputs.
+### 11.0  Instructions for Implementers
+
+To verify a conforming implementation against these vectors:
+
+1. For each row in Section 11.1, compute AHD-1024-256(input) and compare the
+   output byte-for-byte against the digest column. The input encoding is:
+   - Quoted strings (e.g. "abc"): UTF-8 bytes, no null terminator.
+   - "empty": zero-length input (0 bytes).
+   - "0x00 x N": N bytes all equal to 0x00.
+   - "0xff x N": N bytes all equal to 0xff.
+   - "counting 0x00-0xff": 256 bytes with values 0x00, 0x01, ..., 0xff in order.
+   - "a-z A-Z": the 52-byte string "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+
+2. For each row in Sections 11.2.1 and 11.2.2, compute AHD-1024-XOF(input, L)
+   where L is the value in the first column. Compare the full output byte-for-byte
+   against the hex string in the second column. L=0 must return an empty byte string.
+
+3. All comparisons must be exact. A conforming implementation passes if and only if
+   every vector matches bit-for-bit.
+
+4. Digests are encoded as lowercase hexadecimal with no separators.
+   Each hex character represents 4 bits; 32 bytes = 64 hex characters.
+
+5. If any vector fails, the implementation does not conform. The most common causes
+   of failure are: incorrect padding (Section 5), incorrect byte-to-lane mapping
+   (Section 4.3), incorrect lane serialisation endianness (Section 4.4), or
+   incorrect round constant values (Section 8.1).
+
+The following are normative known-answer vectors. All conforming implementations
+must produce identical outputs.
+
 
 ### 11.1  Hash Mode (AHD-1024-256)
 
