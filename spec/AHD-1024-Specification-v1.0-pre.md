@@ -501,24 +501,56 @@ The following are normative known-answer vectors. All conforming implementations
 
 ### 11.1  Hash Mode (AHD-1024-256)
 
-| Input | Digest (hex, 32 bytes) |
-|-------|------------------------|
-| `""` (empty) | `e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0` |
-| `"a"` | `ef258013d45d8f04fc2d6364a54a48c008391c81811cb9ab9ca9a2be4df90bbe` |
-| `"abc"` | `50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f` |
-| `"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"` | `9145c3bcd241cc8347a8d55fc41990ded5b2d5e062cc510deb91f78903a35b09` |
-| `0x00 x 126 bytes` | `370eece8418bab3710ce866b88a632c27537b80466c321e3f78faf43c55f3389` |
-| `0x00 x 128 bytes` | `22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe` |
-| `0xff x 128 bytes` | `68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7` |
+| Input | Length (bytes) | Digest (hex, 32 bytes) |
+|-------|---------------|------------------------|
+| empty | 0 | `e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0` |
+| "a" | 1 | `ef258013d45d8f04fc2d6364a54a48c008391c81811cb9ab9ca9a2be4df90bbe` |
+| "abc" | 3 | `50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f` |
+| a-z A-Z | 52 | `9145c3bcd241cc8347a8d55fc41990ded5b2d5e062cc510deb91f78903a35b09` |
+| 0x00 x 1 | 1 | `3bbff54e02c3149faba2b629393b06ded81ef16b50282543d90ec3d702b7e86d` |
+| 0x00 x 126 | 126 | `370eece8418bab3710ce866b88a632c27537b80466c321e3f78faf43c55f3389` |
+| 0x00 x 127 | 127 | `d75422b1f7b15494f7428fbd4911c8178e363f82032258c7180c98ce6fb1ba41` |
+| 0x00 x 128 | 128 | `22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe` |
+| 0x00 x 129 | 129 | `183a22b19dd510e33fbc53b2066e16da807d00f16b900a43c33a1186498b8312` |
+| 0x00 x 254 | 254 | `79f17f07809441f608ef07d9e8eff530e4d4eca1a82a5af399703df42979e63a` |
+| 0x00 x 255 | 255 | `bbf6687a0643a3adee2c9e97d1b34a51126ae1149bf19ced85753f8c563fdd97` |
+| 0x00 x 256 | 256 | `3487f4f24dd518db4270092c8cc266dd31ffeef0850789bc65705f2f4a2b14b1` |
+| 0xff x 128 | 128 | `68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7` |
+| 0x00 x 383 | 383 | `ff460408f71fff09d6109aad30d833727113d2467e9f17c5d5124a19559e9d09` |
+| 0x00 x 384 | 384 | `b12678ce34d7cb93532f1e14549c722bd9b2cc4b09798f3865a75b6a94e41ff4` |
+| counting 0x00-0xff | 256 | `a40db6771aa9b1856911dc70055a54926975b1385c2af5c35e2dada38412c5d7` |
 
-### 11.2  XOF Mode (AHD-1024-XOF, L = 64)
+> **NOTE** Boundary lengths 126, 127 (last byte of block), 128 (full block),
+> 129 (one byte into next block), 254, 255, 256, 383, 384 exercise all
+> padding edge cases defined in Section 5.3.
 
-| Input | First 64 bytes of output (hex) |
-|-------|--------------------------------|
-| `""` (empty) | `01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f08462ab96efcbfc0e83af22d1f17227f4c22948188749ad465f84cd037048ed8b76` |
-| `"abc"` | `87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891043b1e6bc9a00f313585beba4de91cdf86f2d351792e8685ebf8b427097f5410` |
+### 11.2  XOF Mode (AHD-1024-XOF)
 
-> **NOTE** The full seven-vector set with XOF-64 outputs is in `spec/test-vectors/hash-and-xof-prefreeze.json`. That file is authoritative for all pre-freeze vectors.
+#### 11.2.1  Variable output lengths, empty input
+
+| L (bytes) | Output (hex) |
+|-----------|-------------|
+| 0 | (empty) |
+| 1 | `01` |
+| 32 | `01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f084` |
+| 64 | `01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f08462ab96efcbfc0e83af22d1f17227f4c22948188749ad465f84cd037048ed8b76` |
+| 128 | `01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f08462ab96efcbfc0e83af22d1f17227f4c22948188749ad465f84cd037048ed8b76f058ba42a17772ad14784c2e081fdf59d9f45bc21baa14e039b4a917f3e5b563df0b72611bb2b6065a65bf3422a69f095b14edfc1cb858bc758e77bd7201631d` |
+| 129 | `01e22fe9b943da60f3e76b18355c459d3374e02bbf6db61929ad7991edc0f08462ab96efcbfc0e83af22d1f17227f4c22948188749ad465f84cd037048ed8b76f058ba42a17772ad14784c2e081fdf59d9f45bc21baa14e039b4a917f3e5b563df0b72611bb2b6065a65bf3422a69f095b14edfc1cb858bc758e77bd7201631d39` |
+
+#### 11.2.2  Variable output lengths, input "abc"
+
+| L (bytes) | Output (hex) |
+|-----------|-------------|
+| 0 | (empty) |
+| 1 | `87` |
+| 32 | `87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891` |
+| 64 | `87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891043b1e6bc9a00f313585beba4de91cdf86f2d351792e8685ebf8b427097f5410` |
+| 128 | `87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891043b1e6bc9a00f313585beba4de91cdf86f2d351792e8685ebf8b427097f54107a81062f4cccf78d913e8c39e65d3cd9b67dbfa0c07e0c699f5caf5cc5f12e65a91f19fb7cd501b8832eb969c83d4c50a9a8e47747239217e4e49e631c04eade` |
+| 129 | `87b3ebdd896a889f6bc6fc52482470205bc63c68c5ab101c500c4aa4d044e891043b1e6bc9a00f313585beba4de91cdf86f2d351792e8685ebf8b427097f54107a81062f4cccf78d913e8c39e65d3cd9b67dbfa0c07e0c699f5caf5cc5f12e65a91f19fb7cd501b8832eb969c83d4c50a9a8e47747239217e4e49e631c04eadee1` |
+
+> **NOTE** L=0 returns empty. L=129 exercises the squeeze across a rate boundary
+> (128-byte rate requires a second permutation call for the 129th byte).
+> Longer outputs are prefixes of shorter ones -- XOF output is a stream.
 
 ---
 
