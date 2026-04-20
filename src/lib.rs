@@ -148,6 +148,19 @@ pub fn chi_baseline(s: &State) -> State {
     out
 }
 
+pub fn chi_alt(s: &State) -> State {
+    let mut out = [[0u64; 5]; 5];
+    for y in 0..5 {
+        let a = [s[0][y], s[1][y], s[2][y], s[3][y], s[4][y]];
+        for i in 0..5 {
+            out[i][y] = a[i]
+                ^ ((!a[(i + 1) % 5]) & a[(i + 2) % 5])
+                ^ (a[(i + 3) % 5] & rotl64(a[(i + 4) % 5], 1));
+        }
+    }
+    out
+}
+
 pub fn iota(s: &State, t: usize, constants: &Constants) -> State {
     let mut out = *s;
     out[0][0] ^= constants.k0[t];
@@ -160,6 +173,7 @@ pub fn iota(s: &State, t: usize, constants: &Constants) -> State {
 pub enum ChiVariant {
     Star,
     Baseline,
+    Alt,
 }
 
 
@@ -212,6 +226,7 @@ pub fn trace_difference(
         s = match chi {
             ChiVariant::Star => chi_star(&s),
             ChiVariant::Baseline => chi_baseline(&s),
+            ChiVariant::Alt => chi_alt(&s),
         };
         let after_chi_weight = popcount_state(&s);
 
@@ -276,6 +291,7 @@ fn trace_state_weights(
         s = match chi {
             ChiVariant::Star => chi_star(&s),
             ChiVariant::Baseline => chi_baseline(&s),
+            ChiVariant::Alt => chi_alt(&s),
         };
         s = iota(&s, t, constants);
         out.push(popcount_state(&s));
@@ -343,6 +359,7 @@ pub fn permute(mut s: State, rounds: usize, constants: &Constants, chi: ChiVaria
         s = match chi {
             ChiVariant::Star => chi_star(&s),
             ChiVariant::Baseline => chi_baseline(&s),
+            ChiVariant::Alt => chi_alt(&s),
         };
         s = iota(&s, t, constants);
     }
@@ -695,6 +712,7 @@ pub fn structured_differential_search(
         variant: match chi {
             ChiVariant::Star => "spec_star_chi".to_string(),
             ChiVariant::Baseline => "baseline_chi".to_string(),
+            ChiVariant::Alt => "alt_chi".to_string(),
         },
         rounds: out,
     }
@@ -750,6 +768,7 @@ pub fn low_weight_differential_search(
         variant: match chi {
             ChiVariant::Star => "spec_star_chi".to_string(),
             ChiVariant::Baseline => "baseline_chi".to_string(),
+            ChiVariant::Alt => "alt_chi".to_string(),
         },
         rounds: report,
     }
@@ -1026,6 +1045,7 @@ pub fn stronger_reduced_round_search(
         variant: match chi {
             ChiVariant::Star => "spec_star_chi".to_string(),
             ChiVariant::Baseline => "baseline_chi".to_string(),
+            ChiVariant::Alt => "alt_chi".to_string(),
         },
         rounds: report,
     }

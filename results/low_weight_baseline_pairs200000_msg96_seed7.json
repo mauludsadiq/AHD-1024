@@ -1,6 +1,15 @@
 {
   "variant": "baseline_chi",
   "rounds": {
+    "6": {
+      "pairs": 200000,
+      "min_changed_bits": 93,
+      "avg_changed_bits": 128.00224,
+      "max_changed_bits": 163,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    },
     "1": {
       "pairs": 200000,
       "min_changed_bits": 2,
@@ -9,15 +18,6 @@
       "count_le_32": 200000,
       "count_le_48": 200000,
       "count_le_64": 200000
-    },
-    "2": {
-      "pairs": 200000,
-      "min_changed_bits": 36,
-      "avg_changed_bits": 78.795475,
-      "max_changed_bits": 120,
-      "count_le_32": 0,
-      "count_le_48": 80,
-      "count_le_64": 13315
     },
     "3": {
       "pairs": 200000,
@@ -46,14 +46,14 @@
       "count_le_48": 0,
       "count_le_64": 0
     },
-    "6": {
+    "2": {
       "pairs": 200000,
-      "min_changed_bits": 93,
-      "avg_changed_bits": 128.00224,
-      "max_changed_bits": 163,
+      "min_changed_bits": 36,
+      "avg_changed_bits": 78.795475,
+      "max_changed_bits": 120,
       "count_le_32": 0,
-      "count_le_48": 0,
-      "count_le_64": 0
+      "count_le_48": 80,
+      "count_le_64": 13315
     }
   }
 }

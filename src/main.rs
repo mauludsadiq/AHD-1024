@@ -16,6 +16,16 @@ fn results_dir() -> PathBuf {
     p
 }
 
+fn parse_chi_variant(name: &str) -> ChiVariant {
+    match name {
+        "star" => ChiVariant::Star,
+        "baseline" => ChiVariant::Baseline,
+        "alt" => ChiVariant::Alt,
+        _ => panic!("unknown chi variant"),
+    }
+}
+
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -195,8 +205,10 @@ fn main() {
             let pairs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(200_000);
             let msg_len = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
             let seed = args.get(4).and_then(|s| s.parse::<u64>().ok()).unwrap_or(7);
-            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, ChiVariant::Star, &ROT);
-            let path = results_dir().join(format!("low_weight_pairs{}_msg{}_seed{}.json", pairs, msg_len, seed));
+            let chi = args.get(5).map(|s| parse_chi_variant(s)).unwrap_or(ChiVariant::Star);
+            let report = low_weight_differential_search(&[1,2,3,4,5,6], pairs, msg_len, seed, &constants, chi, &ROT);
+            let chi_name = match chi { ChiVariant::Star => "star", ChiVariant::Baseline => "baseline", ChiVariant::Alt => "alt" };
+            let path = results_dir().join(format!("low_weight_{}_pairs{}_msg{}_seed{}.json", chi_name, pairs, msg_len, seed));
             fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());

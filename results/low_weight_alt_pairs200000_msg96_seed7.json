@@ -1,0 +1,59 @@
+{
+  "variant": "alt_chi",
+  "rounds": {
+    "6": {
+      "pairs": 200000,
+      "min_changed_bits": 93,
+      "avg_changed_bits": 127.966535,
+      "max_changed_bits": 162,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    },
+    "5": {
+      "pairs": 200000,
+      "min_changed_bits": 92,
+      "avg_changed_bits": 128.00988,
+      "max_changed_bits": 161,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    },
+    "1": {
+      "pairs": 200000,
+      "min_changed_bits": 2,
+      "avg_changed_bits": 7.37598,
+      "max_changed_bits": 16,
+      "count_le_32": 200000,
+      "count_le_48": 200000,
+      "count_le_64": 200000
+    },
+    "2": {
+      "pairs": 200000,
+      "min_changed_bits": 69,
+      "avg_changed_bits": 114.445815,
+      "max_changed_bits": 157,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    },
+    "3": {
+      "pairs": 200000,
+      "min_changed_bits": 91,
+      "avg_changed_bits": 127.991875,
+      "max_changed_bits": 165,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    },
+    "4": {
+      "pairs": 200000,
+      "min_changed_bits": 94,
+      "avg_changed_bits": 127.97465,
+      "max_changed_bits": 165,
+      "count_le_32": 0,
+      "count_le_48": 0,
+      "count_le_64": 0
+    }
+  }
+}
