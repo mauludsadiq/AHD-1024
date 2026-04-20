@@ -553,7 +553,15 @@ A conforming implementation:
 
 ### 11.0  Instructions for Implementers
 
-#### Step 0: Build your implementation from this document
+This section tells you exactly what to do to verify your implementation.
+You will need a text editor and a terminal (Command Prompt on Windows, Terminal on Mac/Linux).
+
+#### Where to Work
+
+Create a new folder on your computer named `ahd1024_verification`.
+This is where you will save your code and test files.
+
+#### Step 0: Build Your Implementation from This Document
 
 To build a conforming implementation, read and implement the following sections in order:
 
@@ -575,66 +583,62 @@ Do not consult any existing implementation. Build entirely from this document.
 If any step is ambiguous, note the ambiguity and make your best interpretation.
 Report any ambiguities found -- they are valuable feedback for the specification.
 
-After building your implementation, verify it against these vectors as follows.
+#### Step 1: Make Sure You Have a Function to Test
 
-#### Step 1: Implement the two functions
+Your implementation must expose at least one of these two functions:
 
-Your implementation must expose two functions matching these signatures:
+- `ahd1024_hash(message)` -- returns exactly 32 bytes
+- `ahd1024_xof(message, length)` -- returns exactly `length` bytes
 
-```
-# Hash mode: fixed 32-byte output
-ahd1024_hash(message: bytes) -> bytes  # returns exactly 32 bytes
+If you have not written the code yet: stop here. Go implement the algorithm
+using Sections 4 through 9. Come back when you are ready to test.
 
-# XOF mode: variable-length output
-ahd1024_xof(message: bytes, length: int) -> bytes  # returns exactly length bytes
-```
+#### Step 2: Create a Test Script
 
-#### Step 2: Encode the test inputs
+Copy one of the following templates into a new file in your verification folder.
+Choose the language that matches your implementation.
 
-| Vector label | How to construct the input bytes |
-|---|---|
-| empty | Zero-length byte string |
-| "a" | Single byte: 0x61 |
-| "abc" | Three bytes: 0x61 0x62 0x63 |
-| "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" | 52 UTF-8 bytes, no null terminator |
-| 0x00 x N | N bytes all set to 0x00 |
-| 0xff x N | N bytes all set to 0xff |
-| counting 0x00-0xff | 256 bytes: 0x00, 0x01, 0x02, ..., 0xff in order |
+**Python** -- create `test_ahd1024.py`, add your import at the top:
 
-#### Step 3: Run the verification
-
-**Python:**
 ```python
+# Add this line at the top to import your implementation:
+# from my_ahd1024_module import ahd1024_hash
+
 def verify():
     vectors = [
-        (b"",                       "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
-        (b"a",                      "ef258013d45d8f04fc2d6364a54a48c008391c81811cb9ab9ca9a2be4df90bbe"),
-        (b"abc",                    "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
-        (bytes(126),               "370eece8418bab3710ce866b88a632c27537b80466c321e3f78faf43c55f3389"),
-        (bytes(127),               "d75422b1f7b15494f7428fbd4911c8178e363f82032258c7180c98ce6fb1ba41"),
-        (bytes(128),               "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
-        (bytes(129),               "183a22b19dd510e33fbc53b2066e16da807d00f16b900a43c33a1186498b8312"),
-        (bytes([0xff]*128),        "68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7"),
+        (b"",            "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
+        (b"a",           "ef258013d45d8f04fc2d6364a54a48c008391c81811cb9ab9ca9a2be4df90bbe"),
+        (b"abc",         "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
+        (bytes(126),     "370eece8418bab3710ce866b88a632c27537b80466c321e3f78faf43c55f3389"),
+        (bytes(127),     "d75422b1f7b15494f7428fbd4911c8178e363f82032258c7180c98ce6fb1ba41"),
+        (bytes(128),     "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
+        (bytes(129),     "183a22b19dd510e33fbc53b2066e16da807d00f16b900a43c33a1186498b8312"),
+        (bytes([0xff]*128), "68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7"),
     ]
     all_ok = True
     for msg, expected in vectors:
         got = ahd1024_hash(msg).hex()
-        status = "OK" if got == expected else "FAIL"
-        if status == "FAIL":
+        if got == expected:
+            print("OK: " + repr(msg))
+        else:
             all_ok = False
-            print(f"FAIL: input={msg!r}")
-            print(f"  expected: {expected}")
-            print(f"  got:      {got}")
+            print("FAIL: " + repr(msg))
+            print("  expected: " + expected)
+            print("  got:      " + got)
     if all_ok:
         print("ALL VECTORS PASS")
+
+verify()
 ```
 
-**C:**
+**C** -- create `test_ahd1024.c`, include your header at the top:
+
 ```c
 #include <stdio.h>
 #include <string.h>
-
-/* assume: void ahd1024_hash(const uint8_t *msg, size_t len, uint8_t out[32]); */
+#include <stdint.h>
+/* Add your header: #include "ahd1024.h" */
+/* Assumes: void ahd1024_hash(const uint8_t *msg, size_t len, uint8_t out[32]); */
 
 static void check(const uint8_t *msg, size_t len, const char *expected) {
     uint8_t out[32];
@@ -645,54 +649,80 @@ static void check(const uint8_t *msg, size_t len, const char *expected) {
     hex[64] = 0;
     if (strcmp(hex, expected) == 0)
         printf("OK\n");
-    else {
+    else
         printf("FAIL\n  expected: %s\n  got:      %s\n", expected, hex);
-    }
 }
 
 int main(void) {
     uint8_t zeros128[128] = {0};
+    uint8_t ff128[128];
+    memset(ff128, 0xff, 128);
     check((uint8_t*)"", 0,
-          "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0");
+        "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0");
     check((uint8_t*)"abc", 3,
-          "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f");
+        "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f");
     check(zeros128, 128,
-          "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe");
+        "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe");
+    check(ff128, 128,
+        "68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7");
     return 0;
 }
 ```
 
-**Rust:**
+**Rust** -- add to your test module:
+
 ```rust
-fn verify() {
-    let vectors: &[(&[u8], &str)] = &[
-        (b"",       "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
-        (b"abc",    "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
-        (&[0u8; 128], "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
-    ];
-    for (msg, expected) in vectors {
-        let got = ahd1024_hash(msg);
-        let hex: String = got.iter().map(|b| format!("{:02x}", b)).collect();
-        if hex == *expected {
-            println!("OK");
-        } else {
-            println!("FAIL");
-            println!("  expected: {}", expected);
-            println!("  got:      {}", hex);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vectors() {
+        let vectors: &[(&[u8], &str)] = &[
+            (b"",         "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
+            (b"abc",      "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
+            (&[0u8; 128], "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
+            (&[0u8; 127], "d75422b1f7b15494f7428fbd4911c8178e363f82032258c7180c98ce6fb1ba41"),
+        ];
+        for (msg, expected) in vectors {
+            let got: String = ahd1024_hash(msg).iter()
+                .map(|b| format!("{:02x}", b)).collect();
+            assert_eq!(got, *expected, "failed for input of length {}", msg.len());
         }
     }
 }
 ```
 
-#### Step 4: Interpret results
+#### Step 3: Run the Script
 
-- ALL VECTORS PASS: your implementation is conforming. Run the full set in Section 11.1 and 11.2.
-- Any FAIL: your implementation is not conforming. The most common causes are:
-  - Incorrect padding (Section 5) -- check boundary cases at lengths 126, 127, 128, 129.
-  - Incorrect byte-to-lane mapping (Section 4.3) -- check the worked example.
-  - Wrong endianness in lane serialisation (Section 4.4).
-  - Incorrect round constants (Section 8.1) -- verify K0[0] = 0x1574243b711d5566.
-  - Simultaneous-assignment violation in ChiStar (Section 7.5) -- use a row buffer.
+Open your terminal in the verification folder.
+
+- **Python:** `python test_ahd1024.py`
+- **C:** `gcc -o test test_ahd1024.c ahd1024.o && ./test`
+- **Rust:** `cargo test`
+
+#### Step 4: Read the Output
+
+- **ALL VECTORS PASS:** your implementation is conforming. Proceed to run the full
+  vector set in Sections 11.1 and 11.2.
+- **Any FAIL:** your implementation is not conforming. Use the debugging checklist below.
+
+#### Debugging Checklist
+
+Check these in order. Do not guess.
+
+1. **Padding length** (Section 5.2): hash `"a"` (1 byte). The padded block must be
+   exactly 128 bytes. Check you append domain byte 0x01, then zero bytes, then 0x80.
+2. **Byte order** (Section 4.3): the first input byte must go into the least-significant
+   byte of lane 0. If you used big-endian, all vectors will fail.
+3. **Constants** (Section 8.1): verify K0[0] = 0x1574243b711d5566 exactly.
+   A single wrong constant breaks everything.
+4. **ChiStar row buffer** (Section 7.5): you must read all five t-values before
+   writing any A-prime value. Writing back early corrupts the row.
+5. **Iota lanes** (Section 7.6): constants inject into A[0][0], A[1][2], A[4][4].
+   Wrong lane indices produce wrong output silently.
+
+Report any ambiguities found in this document -- they are valuable feedback.
 
 ### 11.1  Hash Mode (AHD-1024-256)
 
