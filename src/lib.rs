@@ -162,10 +162,30 @@ pub fn chi_alt(s: &State) -> State {
 }
 
 pub fn iota(s: &State, t: usize, constants: &Constants) -> State {
+    iota_3site(s, t, constants)
+}
+
+pub fn iota_1site(s: &State, t: usize, constants: &Constants) -> State {
+    let mut out = *s;
+    out[0][0] ^= constants.k0[t];
+    out
+}
+
+pub fn iota_3site(s: &State, t: usize, constants: &Constants) -> State {
     let mut out = *s;
     out[0][0] ^= constants.k0[t];
     out[1][2] ^= constants.k1[t];
     out[4][4] ^= constants.k2[t];
+    out
+}
+
+pub fn iota_5site(s: &State, t: usize, constants: &Constants) -> State {
+    let mut out = *s;
+    out[0][0] ^= constants.k0[t];
+    out[1][2] ^= constants.k1[t];
+    out[4][4] ^= constants.k2[t];
+    out[2][4] ^= constants.k0[t].rotate_left(13);
+    out[3][1] ^= constants.k1[t].rotate_left(37);
     out
 }
 
