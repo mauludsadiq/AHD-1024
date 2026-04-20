@@ -458,7 +458,43 @@ K2[ir]  = v[48 + ir]  for ir = 0 to 23
 
 ## 9  Algorithm Identifiers and Mode Definitions
 
-### 9.1  AHD-1024-256 (Hash Mode)
+### 9.1  Top-Level Pseudocode
+
+The following pseudocode defines the complete algorithm for both modes.
+Lettered references point to the detailed normative sections.
+
+```
+function AHD1024(M, mode, L):
+    # M    = input message (byte string, length >= 0)
+    # mode = HASH or XOF
+    # L    = output length in bytes (32 for HASH, caller-specified for XOF)
+
+    # 1. Initialise state (Section 4.5)
+    S = zero_state()                        # 25 x 64-bit lanes, all zero
+
+    # 2. Pad input (Section 5)
+    D = 0x01                                # domain suffix for both modes
+    P = pad(M, D, r_bytes=128)              # appends D, zero bytes, 0x80
+
+    # 3. Absorb (Section 6.1)
+    for each 128-byte block B in P:
+        S = xor_rate(S, B)                  # Section 4.3
+        S = permute(S)                      # 24 rounds, Section 7
+
+    # 4. Squeeze (Sections 6.2 / 6.3)
+    output = b""
+    while len(output) < L:
+        output += extract_rate(S, min(128, L - len(output)))   # Section 4.4
+        if len(output) < L:
+            S = permute(S)
+
+    return output[:L]
+```
+
+For AHD-1024-256, call AHD1024(M, HASH, 32).
+For AHD-1024-XOF, call AHD1024(M, XOF, L) for any L >= 0.
+
+### 9.2  AHD-1024-256 (Hash Mode)
 
 ```
 Identifier: AHD-1024-256
@@ -471,7 +507,43 @@ Output:     32 bytes
 4. Return the 32 bytes.
 ```
 
-### 9.2  AHD-1024-XOF (Extendable Output Mode)
+### 9.3  AHD-1024-XOF (Extendable Output Mode)
+
+```
+Identifier: AHD-1024-XOF
+Input:      byte string M, |M| >= 0; output length L >= 0
+Output:     L bytes
+
+1. Initialise state to all zeros.
+2. Absorb M with domain suffix 0x01  (Section 6.1).
+3. Squeeze L bytes  (Section 6.3).
+4. Return the L bytes.
+```
+
+> **NOTE** L = 0 is valid and returns an empty byte string.
+
+---
+
+    return output[:L]
+```
+
+For AHD-1024-256, call AHD1024(M, HASH, 32).
+For AHD-1024-XOF, call AHD1024(M, XOF, L) for any L >= 0.
+
+### 9.2  AHD-1024-256 (Hash Mode)
+
+```
+Identifier: AHD-1024-256
+Input:      byte string M, |M| >= 0
+Output:     32 bytes
+
+1. Initialise state to all zeros.
+2. Absorb M with domain suffix 0x01  (Section 6.1).
+3. Squeeze 32 bytes  (Section 6.2).
+4. Return the 32 bytes.
+```
+
+### 9.3  AHD-1024-XOF (Extendable Output Mode)
 
 ```
 Identifier: AHD-1024-XOF
