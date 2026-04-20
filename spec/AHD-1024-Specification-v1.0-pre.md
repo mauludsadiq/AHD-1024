@@ -155,24 +155,50 @@ The state is initialised to all-zero bits before the first absorption.
 
 ### 5.2  Padding Algorithm
 
-Let `r_bytes = 128`. Given message M of m bytes, construct padded message P as follows:
+Let r_bytes = 128. Given message M of m bytes, construct padded message P as follows:
 
 ```
 1. Append byte D (the domain suffix for the selected mode).
-2. Append the minimum number of 0x00 bytes k such that
-   (m + 1 + k) == r_bytes - 1  (mod r_bytes).
+2. Append the minimum number k of 0x00 bytes such that
+   (m + 1 + k) mod r_bytes == r_bytes - 1.
 3. Append byte 0x80.
 ```
 
-The length of P is always a positive multiple of `r_bytes`. The final byte of P is always `0x80`.
+The length of P is always a positive multiple of r_bytes.
+The final byte of P is always 0x80.
+The minimum padded length is r_bytes = 128 bytes (when m = 0).
 
-> **NOTE** When (m + 1) is already congruent to r_bytes - 1 (mod r_bytes), k = 0. Minimum padded length is 128 bytes.
+### 5.3  Edge Cases
 
-**Examples:**
+The following cases must be handled correctly:
 
-- m = 0 (empty):  P = [0x01, 0x00 x 126, 0x80], length 128
-- m = 127:        P = M || [0x01, 0x80], length 128  (k = 0)
-- m = 128:        P = M || [0x01, 0x00 x 126, 0x80], length 256
+| m mod r_bytes | k (zero bytes inserted) | Padded length |
+|---------------|------------------------|---------------|
+| 0             | 126                    | m + 128       |
+| 126           | 0                      | m + 2         |
+| 127           | 127                    | m + 129       |
+
+> **NOTE** When m mod r_bytes = 126, the domain byte and 0x80 fill the
+> last two positions exactly and k = 0. When m mod r_bytes = 127, only
+> one byte remains in the block for the domain byte, so an entire extra
+> block of padding is required.
+
+### 5.4  Padding Examples
+
+- m = 0 (empty):   P = [0x01, 0x00 x 126, 0x80], length 128
+- m = 1:           P = M || [0x01, 0x00 x 125, 0x80], length 128
+- m = 126:         P = M || [0x01, 0x80], length 128  (k = 0)
+- m = 127:         P = M || [0x01, 0x00 x 126, 0x80], length 256
+- m = 128:         P = M || [0x01, 0x00 x 126, 0x80], length 256
+- m = 254:         P = M || [0x01, 0x80], length 256  (k = 0)
+- m = 255:         P = M || [0x01, 0x00 x 126, 0x80], length 384
+
+### 5.5  Unambiguity
+
+The padding rule is prefix-free within each mode: no two distinct messages
+produce the same padded block sequence. The domain suffix byte ensures that
+hash mode and XOF mode inputs are distinct even for identical messages,
+provided their domain bytes differ in future versions.
 
 ---
 
