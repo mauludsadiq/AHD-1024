@@ -590,35 +590,128 @@ A conforming implementation:
 
 ### 11.0  Instructions for Implementers
 
-To verify a conforming implementation against these vectors:
+After building your implementation, verify it against these vectors as follows.
 
-1. For each row in Section 11.1, compute AHD-1024-256(input) and compare the
-   output byte-for-byte against the digest column. The input encoding is:
-   - Quoted strings (e.g. "abc"): UTF-8 bytes, no null terminator.
-   - "empty": zero-length input (0 bytes).
-   - "0x00 x N": N bytes all equal to 0x00.
-   - "0xff x N": N bytes all equal to 0xff.
-   - "counting 0x00-0xff": 256 bytes with values 0x00, 0x01, ..., 0xff in order.
-   - "a-z A-Z": the 52-byte string "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".
+#### Step 1: Implement the two functions
 
-2. For each row in Sections 11.2.1 and 11.2.2, compute AHD-1024-XOF(input, L)
-   where L is the value in the first column. Compare the full output byte-for-byte
-   against the hex string in the second column. L=0 must return an empty byte string.
+Your implementation must expose two functions matching these signatures:
 
-3. All comparisons must be exact. A conforming implementation passes if and only if
-   every vector matches bit-for-bit.
+```
+# Hash mode: fixed 32-byte output
+ahd1024_hash(message: bytes) -> bytes  # returns exactly 32 bytes
 
-4. Digests are encoded as lowercase hexadecimal with no separators.
-   Each hex character represents 4 bits; 32 bytes = 64 hex characters.
+# XOF mode: variable-length output
+ahd1024_xof(message: bytes, length: int) -> bytes  # returns exactly length bytes
+```
 
-5. If any vector fails, the implementation does not conform. The most common causes
-   of failure are: incorrect padding (Section 5), incorrect byte-to-lane mapping
-   (Section 4.3), incorrect lane serialisation endianness (Section 4.4), or
-   incorrect round constant values (Section 8.1).
+#### Step 2: Encode the test inputs
 
-The following are normative known-answer vectors. All conforming implementations
-must produce identical outputs.
+| Vector label | How to construct the input bytes |
+|---|---|
+| empty | Zero-length byte string |
+| "a" | Single byte: 0x61 |
+| "abc" | Three bytes: 0x61 0x62 0x63 |
+| "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" | 52 UTF-8 bytes, no null terminator |
+| 0x00 x N | N bytes all set to 0x00 |
+| 0xff x N | N bytes all set to 0xff |
+| counting 0x00-0xff | 256 bytes: 0x00, 0x01, 0x02, ..., 0xff in order |
 
+#### Step 3: Run the verification
+
+**Python:**
+```python
+def verify():
+    vectors = [
+        (b"",                       "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
+        (b"a",                      "ef258013d45d8f04fc2d6364a54a48c008391c81811cb9ab9ca9a2be4df90bbe"),
+        (b"abc",                    "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
+        (bytes(126),               "370eece8418bab3710ce866b88a632c27537b80466c321e3f78faf43c55f3389"),
+        (bytes(127),               "d75422b1f7b15494f7428fbd4911c8178e363f82032258c7180c98ce6fb1ba41"),
+        (bytes(128),               "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
+        (bytes(129),               "183a22b19dd510e33fbc53b2066e16da807d00f16b900a43c33a1186498b8312"),
+        (bytes([0xff]*128),        "68513f624ee201a93aa39d4aa9a8d4221f5ea2a68d7fd5a91e9bcf686099e2f7"),
+    ]
+    all_ok = True
+    for msg, expected in vectors:
+        got = ahd1024_hash(msg).hex()
+        status = "OK" if got == expected else "FAIL"
+        if status == "FAIL":
+            all_ok = False
+            print(f"FAIL: input={msg!r}")
+            print(f"  expected: {expected}")
+            print(f"  got:      {got}")
+    if all_ok:
+        print("ALL VECTORS PASS")
+```
+
+**C:**
+```c
+#include <stdio.h>
+#include <string.h>
+
+/* assume: void ahd1024_hash(const uint8_t *msg, size_t len, uint8_t out[32]); */
+
+static void check(const uint8_t *msg, size_t len, const char *expected) {
+    uint8_t out[32];
+    char hex[65];
+    ahd1024_hash(msg, len, out);
+    for (int i = 0; i < 32; i++)
+        sprintf(hex + 2*i, "%02x", out[i]);
+    hex[64] = 0;
+    if (strcmp(hex, expected) == 0)
+        printf("OK
+");
+    else {
+        printf("FAIL
+  expected: %s
+  got:      %s
+", expected, hex);
+    }
+}
+
+int main(void) {
+    uint8_t zeros128[128] = {0};
+    check((uint8_t*)"", 0,
+          "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0");
+    check((uint8_t*)"abc", 3,
+          "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f");
+    check(zeros128, 128,
+          "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe");
+    return 0;
+}
+```
+
+**Rust:**
+```rust
+fn verify() {
+    let vectors: &[(&[u8], &str)] = &[
+        (b"",       "e8bf66fb70ec3787817c0cb717952140569a853f94dee36a21268632b9a59ed0"),
+        (b"abc",    "50f4f48736c87a32bb20c618fda7de0ec0260edd57f340e92d8daa45d54a4a1f"),
+        (&[0u8; 128], "22598b6298b7125bdacf7486508d3efc34e93334f93b889b736e2614cd3479fe"),
+    ];
+    for (msg, expected) in vectors {
+        let got = ahd1024_hash(msg);
+        let hex: String = got.iter().map(|b| format!("{:02x}", b)).collect();
+        if hex == *expected {
+            println!("OK");
+        } else {
+            println!("FAIL");
+            println!("  expected: {}", expected);
+            println!("  got:      {}", hex);
+        }
+    }
+}
+```
+
+#### Step 4: Interpret results
+
+- ALL VECTORS PASS: your implementation is conforming. Run the full set in Section 11.1 and 11.2.
+- Any FAIL: your implementation is not conforming. The most common causes are:
+  - Incorrect padding (Section 5) -- check boundary cases at lengths 126, 127, 128, 129.
+  - Incorrect byte-to-lane mapping (Section 4.3) -- check the worked example.
+  - Wrong endianness in lane serialisation (Section 4.4).
+  - Incorrect round constants (Section 8.1) -- verify K0[0] = 0x1574243b711d5566.
+  - Simultaneous-assignment violation in ChiStar (Section 7.5) -- use a row buffer.
 
 ### 11.1  Hash Mode (AHD-1024-256)
 
