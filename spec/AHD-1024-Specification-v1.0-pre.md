@@ -553,6 +553,28 @@ A conforming implementation:
 
 ### 11.0  Instructions for Implementers
 
+#### Step 0: Build your implementation from this document
+
+To build a conforming implementation, read and implement the following sections in order:
+
+1. **Section 3** -- note the parameters: state width, rate, capacity, rounds.
+2. **Section 4** -- implement the state as a 5x5 array of 64-bit lanes.
+   Use the lane index formula (i = x + 5*y) and the byte-to-lane mapping.
+   Pay close attention to the worked example in Section 4.3.
+3. **Section 5** -- implement the padding algorithm exactly as specified.
+   Test your padding on the boundary cases in Section 5.3 before proceeding.
+4. **Section 7** -- implement the five round steps in order: Theta, Rho, Pi, ChiStar, Iota.
+   ChiStar requires a temporary row buffer (Section 7.5).
+   Iota injects constants into three specific lanes: A[0][0], A[1][2], A[4][4].
+5. **Section 8** -- use the normative constant table. Verify K0[0] = 0x1574243b711d5566.
+6. **Section 6** -- implement absorb (XOR blocks into state, then permute) and squeeze
+   (extract rate bytes, permute if more output needed).
+7. **Section 9** -- wire the above into the two top-level functions: AHD-1024-256 and AHD-1024-XOF.
+
+Do not consult any existing implementation. Build entirely from this document.
+If any step is ambiguous, note the ambiguity and make your best interpretation.
+Report any ambiguities found -- they are valuable feedback for the specification.
+
 After building your implementation, verify it against these vectors as follows.
 
 #### Step 1: Implement the two functions
