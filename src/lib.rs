@@ -949,6 +949,73 @@ pub struct AvalancheReport {
     pub output_flip_max_prob: f64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AvalancheRoundReport {
+    pub rounds: HashMap<usize, AvalancheReport>,
+}
+
+
+
+pub fn avalanche_round_stats(
+    rounds_list: &[usize],
+    msg_len: usize,
+    n_msgs: usize,
+    flips_per_msg: usize,
+    seed: u64,
+    constants: &Constants,
+    chi: ChiVariant,
+    rot: &[[u32; 5]; 5],
+) -> AvalancheRoundReport {
+    let mut out = HashMap::new();
+
+    for &rounds in rounds_list {
+        let mut rng = StdRng::seed_from_u64(seed);
+        let mut total_pairs = 0usize;
+        let mut changed = Vec::with_capacity(n_msgs * flips_per_msg);
+        let mut out_flip_counts = vec![0usize; 256];
+
+        for _ in 0..n_msgs {
+            let mut msg = vec![0u8; msg_len];
+            rng.fill(&mut msg[..]);
+            let base = aha_hash(&msg, Domain::Hash, 32, rounds, constants, chi, rot);
+            let mut chosen = HashSet::new();
+            while chosen.len() < flips_per_msg {
+                chosen.insert(rng.gen_range(0..msg_len * 8));
+            }
+            for pos in chosen {
+                let mut m2 = msg.clone();
+                m2[pos / 8] ^= 1u8 << (pos % 8);
+                let h2 = aha_hash(&m2, Domain::Hash, 32, rounds, constants, chi, rot);
+                let diff = xor_bytes(&base, &h2);
+                changed.push(popcount_bytes(&diff) as usize);
+                for (j, byte) in diff.iter().enumerate() {
+                    for k in 0..8 {
+                        if (byte >> k) & 1 == 1 {
+                            out_flip_counts[j * 8 + k] += 1;
+                        }
+                    }
+                }
+                total_pairs += 1;
+            }
+        }
+
+        let probs: Vec<f64> = out_flip_counts.iter().map(|&c| c as f64 / total_pairs as f64).collect();
+        out.insert(rounds, AvalancheReport {
+            pairs: total_pairs,
+            avg_changed_bits: changed.iter().sum::<usize>() as f64 / changed.len() as f64,
+            avg_changed_fraction: changed.iter().sum::<usize>() as f64 / (changed.len() * 256) as f64,
+            output_flip_mean_prob: probs.iter().sum::<f64>() / 256.0,
+            output_flip_mean_abs_dev: probs.iter().map(|p| (p - 0.5).abs()).sum::<f64>() / 256.0,
+            output_flip_max_abs_dev: probs.iter().map(|p| (p - 0.5).abs()).fold(0.0_f64, f64::max),
+            output_flip_min_prob: probs.iter().copied().fold(f64::INFINITY, f64::min),
+            output_flip_max_prob: probs.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+        });
+    }
+
+    AvalancheRoundReport { rounds: out }
+}
+
+
 pub fn avalanche_stats(
     msg_len: usize,
     n_msgs: usize,

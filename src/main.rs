@@ -105,6 +105,18 @@ fn main() {
             println!("wrote {}", path.display());
             println!("{}", serde_json::to_string_pretty(&report).unwrap());
         }
+        "avalanche-24" => {
+            let n_msgs = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1024);
+            let flips = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(32);
+            let msg_len = args.get(4).and_then(|s| s.parse::<usize>().ok()).unwrap_or(96);
+            let seed = args.get(5).and_then(|s| s.parse::<u64>().ok()).unwrap_or(1234);
+            let rounds: Vec<usize> = (1..=24).collect();
+            let report = avalanche_round_stats(&rounds, msg_len, n_msgs, flips, seed, &constants, ChiVariant::Star, &ROT);
+            let path = results_dir().join(format!("avalanche_24_msgs{}_flips{}_msg{}_seed{}.json", n_msgs, flips, msg_len, seed));
+            fs::write(&path, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+            println!("wrote {}", path.display());
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        }
         "avalanche-matrix" => {
             let n_input_bits = args.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(64);
             let n_msgs_per_input = args.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1024);

@@ -1,0 +1,244 @@
+{
+  "rounds": {
+    "17": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.02896118164062,
+      "avg_changed_fraction": 0.5001131296157837,
+      "output_flip_mean_prob": 0.5001131296157837,
+      "output_flip_mean_abs_dev": 0.002160191535949707,
+      "output_flip_max_abs_dev": 0.009368896484375,
+      "output_flip_min_prob": 0.490631103515625,
+      "output_flip_max_prob": 0.507415771484375
+    },
+    "2": {
+      "pairs": 32768,
+      "avg_changed_bits": 115.55368041992188,
+      "avg_changed_fraction": 0.4513815641403198,
+      "output_flip_mean_prob": 0.4513815641403198,
+      "output_flip_mean_abs_dev": 0.048618435859680176,
+      "output_flip_max_abs_dev": 0.069854736328125,
+      "output_flip_min_prob": 0.430145263671875,
+      "output_flip_max_prob": 0.476776123046875
+    },
+    "18": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.03231811523438,
+      "avg_changed_fraction": 0.5001262426376343,
+      "output_flip_mean_prob": 0.5001262426376343,
+      "output_flip_mean_abs_dev": 0.002108931541442871,
+      "output_flip_max_abs_dev": 0.007171630859375,
+      "output_flip_min_prob": 0.493560791015625,
+      "output_flip_max_prob": 0.507171630859375
+    },
+    "8": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.043212890625,
+      "avg_changed_fraction": 0.5001688003540039,
+      "output_flip_mean_prob": 0.5001688003540039,
+      "output_flip_mean_abs_dev": 0.0021619796752929688,
+      "output_flip_max_abs_dev": 0.0081787109375,
+      "output_flip_min_prob": 0.493438720703125,
+      "output_flip_max_prob": 0.5081787109375
+    },
+    "14": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.00460815429688,
+      "avg_changed_fraction": 0.5000180006027222,
+      "output_flip_mean_prob": 0.5000180006027222,
+      "output_flip_mean_abs_dev": 0.002389073371887207,
+      "output_flip_max_abs_dev": 0.00860595703125,
+      "output_flip_min_prob": 0.493255615234375,
+      "output_flip_max_prob": 0.50860595703125
+    },
+    "20": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.04248046875,
+      "avg_changed_fraction": 0.5001659393310547,
+      "output_flip_mean_prob": 0.5001659393310547,
+      "output_flip_mean_abs_dev": 0.002162933349609375,
+      "output_flip_max_abs_dev": 0.008697509765625,
+      "output_flip_min_prob": 0.491302490234375,
+      "output_flip_max_prob": 0.50732421875
+    },
+    "19": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.95062255859375,
+      "avg_changed_fraction": 0.49980711936950684,
+      "output_flip_mean_prob": 0.49980711936950684,
+      "output_flip_mean_abs_dev": 0.0020830631256103516,
+      "output_flip_max_abs_dev": 0.010223388671875,
+      "output_flip_min_prob": 0.493865966796875,
+      "output_flip_max_prob": 0.510223388671875
+    },
+    "21": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.03872680664062,
+      "avg_changed_fraction": 0.5001512765884399,
+      "output_flip_mean_prob": 0.5001512765884399,
+      "output_flip_mean_abs_dev": 0.002161383628845215,
+      "output_flip_max_abs_dev": 0.008087158203125,
+      "output_flip_min_prob": 0.492828369140625,
+      "output_flip_max_prob": 0.508087158203125
+    },
+    "24": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.93270874023438,
+      "avg_changed_fraction": 0.4997371435165405,
+      "output_flip_mean_prob": 0.4997371435165405,
+      "output_flip_mean_abs_dev": 0.0021020174026489258,
+      "output_flip_max_abs_dev": 0.007232666015625,
+      "output_flip_min_prob": 0.492767333984375,
+      "output_flip_max_prob": 0.506591796875
+    },
+    "3": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.0347900390625,
+      "avg_changed_fraction": 0.5001358985900879,
+      "output_flip_mean_prob": 0.5001358985900879,
+      "output_flip_mean_abs_dev": 0.002147674560546875,
+      "output_flip_max_abs_dev": 0.008087158203125,
+      "output_flip_min_prob": 0.4935302734375,
+      "output_flip_max_prob": 0.508087158203125
+    },
+    "23": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.01651000976562,
+      "avg_changed_fraction": 0.500064492225647,
+      "output_flip_mean_prob": 0.500064492225647,
+      "output_flip_mean_abs_dev": 0.002125382423400879,
+      "output_flip_max_abs_dev": 0.00811767578125,
+      "output_flip_min_prob": 0.49188232421875,
+      "output_flip_max_prob": 0.507171630859375
+    },
+    "16": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.05718994140625,
+      "avg_changed_fraction": 0.5002233982086182,
+      "output_flip_mean_prob": 0.5002233982086182,
+      "output_flip_mean_abs_dev": 0.0021691322326660156,
+      "output_flip_max_abs_dev": 0.00811767578125,
+      "output_flip_min_prob": 0.49188232421875,
+      "output_flip_max_prob": 0.50775146484375
+    },
+    "11": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.97991943359375,
+      "avg_changed_fraction": 0.4999215602874756,
+      "output_flip_mean_prob": 0.4999215602874756,
+      "output_flip_mean_abs_dev": 0.002460479736328125,
+      "output_flip_max_abs_dev": 0.0087890625,
+      "output_flip_min_prob": 0.4912109375,
+      "output_flip_max_prob": 0.50714111328125
+    },
+    "22": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.96380615234375,
+      "avg_changed_fraction": 0.4998586177825928,
+      "output_flip_mean_prob": 0.4998586177825928,
+      "output_flip_mean_abs_dev": 0.002142667770385742,
+      "output_flip_max_abs_dev": 0.0078125,
+      "output_flip_min_prob": 0.4921875,
+      "output_flip_max_prob": 0.5078125
+    },
+    "13": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.98983764648438,
+      "avg_changed_fraction": 0.4999603033065796,
+      "output_flip_mean_prob": 0.4999603033065796,
+      "output_flip_mean_abs_dev": 0.0021718740463256836,
+      "output_flip_max_abs_dev": 0.008209228515625,
+      "output_flip_min_prob": 0.49237060546875,
+      "output_flip_max_prob": 0.508209228515625
+    },
+    "15": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.96713256835938,
+      "avg_changed_fraction": 0.4998716115951538,
+      "output_flip_mean_prob": 0.4998716115951538,
+      "output_flip_mean_abs_dev": 0.00225985050201416,
+      "output_flip_max_abs_dev": 0.008453369140625,
+      "output_flip_min_prob": 0.491546630859375,
+      "output_flip_max_prob": 0.50830078125
+    },
+    "6": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.01974487304688,
+      "avg_changed_fraction": 0.5000771284103394,
+      "output_flip_mean_prob": 0.5000771284103394,
+      "output_flip_mean_abs_dev": 0.0021616220474243164,
+      "output_flip_max_abs_dev": 0.00689697265625,
+      "output_flip_min_prob": 0.49310302734375,
+      "output_flip_max_prob": 0.505767822265625
+    },
+    "10": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.06320190429688,
+      "avg_changed_fraction": 0.5002468824386597,
+      "output_flip_mean_prob": 0.5002468824386597,
+      "output_flip_mean_abs_dev": 0.0021916627883911133,
+      "output_flip_max_abs_dev": 0.0089111328125,
+      "output_flip_min_prob": 0.4910888671875,
+      "output_flip_max_prob": 0.5068359375
+    },
+    "12": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.04055786132812,
+      "avg_changed_fraction": 0.500158429145813,
+      "output_flip_mean_prob": 0.500158429145813,
+      "output_flip_mean_abs_dev": 0.002022385597229004,
+      "output_flip_max_abs_dev": 0.008026123046875,
+      "output_flip_min_prob": 0.491973876953125,
+      "output_flip_max_prob": 0.50640869140625
+    },
+    "4": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.00604248046875,
+      "avg_changed_fraction": 0.500023603439331,
+      "output_flip_mean_prob": 0.500023603439331,
+      "output_flip_mean_abs_dev": 0.002222299575805664,
+      "output_flip_max_abs_dev": 0.00750732421875,
+      "output_flip_min_prob": 0.49249267578125,
+      "output_flip_max_prob": 0.50714111328125
+    },
+    "5": {
+      "pairs": 32768,
+      "avg_changed_bits": 128.01837158203125,
+      "avg_changed_fraction": 0.5000717639923096,
+      "output_flip_mean_prob": 0.5000717639923096,
+      "output_flip_mean_abs_dev": 0.0022428035736083984,
+      "output_flip_max_abs_dev": 0.010894775390625,
+      "output_flip_min_prob": 0.489105224609375,
+      "output_flip_max_prob": 0.5072021484375
+    },
+    "7": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.97280883789062,
+      "avg_changed_fraction": 0.49989378452301025,
+      "output_flip_mean_prob": 0.49989378452301025,
+      "output_flip_mean_abs_dev": 0.0020769834518432617,
+      "output_flip_max_abs_dev": 0.007904052734375,
+      "output_flip_min_prob": 0.492645263671875,
+      "output_flip_max_prob": 0.507904052734375
+    },
+    "1": {
+      "pairs": 32768,
+      "avg_changed_bits": 7.62603759765625,
+      "avg_changed_fraction": 0.029789209365844727,
+      "output_flip_mean_prob": 0.029789209365844727,
+      "output_flip_mean_abs_dev": 0.4702107906341553,
+      "output_flip_max_abs_dev": 0.47283935546875,
+      "output_flip_min_prob": 0.02716064453125,
+      "output_flip_max_prob": 0.032623291015625
+    },
+    "9": {
+      "pairs": 32768,
+      "avg_changed_bits": 127.99713134765625,
+      "avg_changed_fraction": 0.4999887943267822,
+      "output_flip_mean_prob": 0.4999887943267822,
+      "output_flip_mean_abs_dev": 0.002066373825073242,
+      "output_flip_max_abs_dev": 0.007537841796875,
+      "output_flip_min_prob": 0.492462158203125,
+      "output_flip_max_prob": 0.5068359375
+    }
+  }
+}
