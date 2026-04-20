@@ -601,6 +601,36 @@ Interpretation:
   - round `3+` remains in the high-weight / near-saturated regime
 
 
+### Phase 4 Result: Nonlinear Layer Tournament (Initial)
+
+A first nonlinear-layer comparison has now been completed using the low-weight differential screen at equal depth.
+
+Measured runs:
+- `results/low_weight_pairs200000_msg96_seed7.json` (spec `Χ*`)
+- `results/low_weight_alt_pairs200000_msg96_seed7.json` (alternate `Χ'`)
+- `results/low_weight_baseline_pairs200000_msg96_seed7.json` (baseline `Χ`)
+
+Critical round-2 comparison:
+- spec `Χ*`:
+  - `avg_changed_bits ≈ 115.53`
+  - `min_changed_bits = 75`
+- alternate `Χ'`:
+  - `avg_changed_bits ≈ 114.45`
+  - `min_changed_bits = 69`
+- baseline `Χ`:
+  - `avg_changed_bits ≈ 78.80`
+  - `min_changed_bits = 36`
+  - `count_le_64 = 13315`
+
+Interpretation:
+- The current nonlinear layer is ahead on the decisive transitional round.
+- The alternate nonlinear layer is viable but weaker than the current design at round `2`.
+- The baseline nonlinear layer is decisively weaker.
+
+Current Phase 4 reading:
+- `Χ*` is the provisional winner of the nonlinear-layer tournament.
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
