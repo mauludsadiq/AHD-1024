@@ -59,6 +59,27 @@ cargo build --release
 
 ---
 
+## Generate an Artifact
+
+Hash a string:
+
+    cargo run --release -- hash "your input"
+
+XOF with specified output length:
+
+    cargo run --release -- xof "your input" 64
+
+Hash raw bytes given as hex:
+
+    cargo run --release -- hash-hex "deadbeef"
+
+Output format:
+
+    AHD-1024-256:<32-byte digest hex>
+    AHD-1024-XOF:<L-byte output hex>
+
+---
+
 ## Basic Verification
 
 cargo run --release -- vectors  
