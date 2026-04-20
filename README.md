@@ -631,6 +631,36 @@ Current Phase 4 reading:
 - `Χ*` is the provisional winner of the nonlinear-layer tournament.
 
 
+### Phase 4 Result: Rotation Table Tournament (Initial)
+
+A first nearby-rotation comparison has now been completed using the same low-weight differential screen.
+
+Measured runs:
+- `results/low_weight_star_pairs200000_msg96_seed7.json` (current `ROT`)
+- `results/low_weight_shifted_pairs200000_msg96_seed7.json` (`ROT + 1 mod 64`)
+- `results/low_weight_shifted_b_pairs200000_msg96_seed7.json` (`ROT + 7 mod 64`)
+
+Critical round-2 comparison:
+- current `ROT`:
+  - `avg_changed_bits = 115.55441`
+  - `min_changed_bits = 73`
+- shifted `+1`:
+  - `avg_changed_bits = 115.54941`
+  - `min_changed_bits = 78`
+- shifted `+7`:
+  - `avg_changed_bits = 115.546275`
+  - `min_changed_bits = 75`
+
+Interpretation:
+- The nearby rotation variants are effectively tied on average.
+- `ROT + 1` slightly improves the minimum at round `2`, but not by enough to establish a decisive win.
+- No nearby rotation table tested so far clearly outperforms the current design.
+
+Current Phase 4 reading:
+- the current rotation table remains a reasonable choice
+- no decisive replacement has emerged from nearby perturbations
+
+
 ### Next Phase
 
 Phase 3: Extended Empirical Cryptanalysis
