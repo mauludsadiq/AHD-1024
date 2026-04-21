@@ -877,7 +877,7 @@ This document is the sole normative reference. The specification remains valid a
 |---------|------|--------------------|
 | v0.1    | 2026-04-18 | Initial working design. Round function, constants, and padding defined. |
 | v0.2    | 2026-04-19 | Endianness and padding normalization. Canonical byte-to-lane mapping frozen. Domain separation defined. Three independent implementations (Rust, Python, C) verified bit-identical on all test vectors. Designated AHA-D-256 v0.2. |
-| v1.0-pre | 2026-04-20 | Specification document created. Section 4 state mapping tightened with lane table and worked example. Section 5 padding algorithm formalized with edge case table and examples. Section 11 test vectors expanded to 16 hash vectors and XOF vectors at L=0,1,32,64,128,129. Section 2 glossary added. Top-level pseudocode added. ANF results corrected to reflect current implementation. README staleness audit completed. |
+| v1.0-pre | 2026-04-20 | Specification document created. Section 4 state mapping tightened with lane table and worked example. Section 5 padding algorithm formalized with edge case table and examples. Section 11 test vectors expanded to 16 hash vectors and XOF vectors at L=0,1,32,64,128,129. Section 2 glossary added. Top-level pseudocode added. ANF results corrected to reflect current implementation. README staleness audit completed. ChiStar formula corrected to match reference implementation: second nonlinear term is ROL(t3,1) & ROL(t4,3), not (t1 & ~t3) ^ (~t2 & t4). |
 
 > **NOTE** Any change to padding, endianness, constants, or round structure
 > requires a new major version identifier. The algorithm identifiers
