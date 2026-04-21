@@ -329,8 +329,13 @@ For y = 0 to 4:
         t2 = A[(x+2) mod 5][y]
         t3 = A[(x+3) mod 5][y]
         t4 = A[(x+4) mod 5][y]
-        A'[x][y] = t0 ^ (~t1 & t2) ^ (t1 & ~t3) ^ (~t2 & t4)
+        A'[x][y] = t0 ^ (~t1 & t2) ^ (ROL(t3, 1) & ROL(t4, 3))
 ```
+
+> **NOTE** The second nonlinear term uses rotated inputs: ROL(t3, 1) and ROL(t4, 3).
+> This differs from a standard Chi step. The rotation offsets 1 and 3 are part of
+> the normative definition. Implementations that omit the rotations will produce
+> incorrect output and fail the test vectors.
 
 ### 7.6  Iota
 
