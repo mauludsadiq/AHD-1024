@@ -204,6 +204,86 @@ Cycle detection for lengths 2, 3, and 4.
 
 **Conclusion:** Round 3 achieves statistical ideality in differential metrics. Round 4 achieves near-maximum algebraic degree. No structural artifacts detected in any metric through round 6.
 
+## Application-Level Validation: Fard Dinar
+
+AHD-1024 is not only evaluated in isolation. It is actively used as the hashing primitive in a fully deterministic monetary and network engine:
+
+**Fard Dinar**  
+Repository: https://github.com/mauludsadiq/Fard-Dinar
+
+### What this validates
+
+Fard Dinar is a pure-FARD system (engine, wallet, vendor layer, network, analytics) where:
+
+- Every execution produces an **AHD-1024-256 receipt**
+- Receipts commit to:
+  - inputs
+  - pre-state
+  - post-state
+  - full execution trace
+- Independent nodes and registries converge to **identical final state hashes**
+
+### Proven properties in this environment
+
+- **Cross-machine determinism**
+  - Same events + same genesis → identical final state hash across nodes
+
+- **Mesh convergence**
+  - Multiple registries and nodes resolve conflicts independently and still converge to the same canonical result
+
+- **Replay invariance**
+  - Full ledger replay produces identical hashes to live execution
+
+- **Receipt integrity**
+  - Every state transition is cryptographically bound to AHD-1024 outputs
+
+### Example invariant
+
+Two independent nodes processing the same event set (including conflicts) converge to:
+
+    ahd1024:b350cffb...
+
+This matches:
+- live execution
+- offline replay
+- cross-node state
+
+### Interpretation
+
+This demonstrates that AHD-1024:
+
+- behaves deterministically under real system pressure
+- is stable as a **state commitment primitive**
+- does not introduce cross-platform divergence
+- supports higher-level invariants (ordering, conflict resolution, replay)
+
+### Scope clarification
+
+This is **application-level validation**, not a replacement for specification-level verification.
+
+- Fard Dinar proves:  
+  → AHD-1024 works correctly inside a deterministic distributed system
+
+- External implementation test proves:  
+  → AHD-1024 can be implemented correctly from the specification alone
+
+Both are required for a complete validation story.
+
+### Updated Validation Picture
+
+AHD-1024 is now supported by three independent layers:
+
+1. **Specification correctness**
+   - deterministic constants
+   - defined padding and mapping
+
+2. **Implementation agreement**
+   - Rust, Python, C match bit-for-bit
+
+3. **Application integration**
+   - Fard Dinar demonstrates deterministic convergence and replay invariance
+
+
 ## Status
 
 AHD-1024 has reached a critical reproducibility milestone.
